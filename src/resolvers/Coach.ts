@@ -125,7 +125,7 @@ const CoachResolvers: IResolvers = {
         const token = await checkPassword(coach, input.password);
         return {
           status: true,
-          message: "Coach logged in successfully",
+          message: "Coach logged in successfull",
           token,
         };
       } catch (err: any) {
