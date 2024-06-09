@@ -1,0 +1,62 @@
+input OtpInput {
+  email: String!
+  purpose: OtpInputPurpose!
+}
+
+input VerifyInput {
+  email: String!
+  otp: String!
+}
+
+input RegisterStudentInput {
+  email: String!
+  password: String!
+  name: String!
+  schoolID: Int!
+  grade: String!
+  age: Int!
+}
+
+input LoginStudentInput {
+  email: String!
+  password: String!
+}
+
+enum OtpInputPurpose {
+  REGISTER
+  FORGOT_PASSWORD
+}
+
+type OtpResult {
+  status: Boolean
+  message: String
+}
+
+type VerifyEmailResponse {
+  status: Boolean
+  message: String
+  token: String
+}
+
+type RegisterStudentResponse {
+  status: Boolean
+  message: String
+  token: String
+}
+
+type LoginStudentResponse {
+  status: Boolean
+  message: String
+  token: String
+}
+
+type Student {
+  id: ID!
+  email: String!
+  name: String!
+  schoolID: Int!
+  grade: String!
+  age: Int!
+  createdAt: String!
+  updatedAt: String!
+}

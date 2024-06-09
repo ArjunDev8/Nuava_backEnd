@@ -1,0 +1,36 @@
+input CoachOTPInput {
+  OTPInputs: OtpInput!
+  passkey: String!
+}
+
+input RegisterCoachInput {
+  name: String!
+  email: String!
+  phone: String!
+  password: String!
+}
+
+input LoginCoachInput {
+  email: String!
+  password: String!
+}
+
+type Coach {
+  id: Int!
+  name: String!
+  email: String!
+  phone: String!
+  schoolID: String!
+}
+
+type RegisterCoachResponse {
+  status: Boolean
+  message: String
+  token: String
+}
+
+type LoginCoachResponse {
+  status: Boolean
+  message: String
+  token: String
+}

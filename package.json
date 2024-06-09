@@ -1,0 +1,55 @@
+{
+  "name": "nyne",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node 'dist/server.js'",
+    "build": "tsc -p . && ncp src/schema dist/schema",
+    "dev": "nodemon 'src/server.ts' ",
+    "migrate": "prisma migrate dev",
+    "postmigrate": "npx @snaplet/seed sync"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed/seed.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@snaplet/copycat": "^5.0.0",
+    "@snaplet/seed": "0.97.20",
+    "@types/bcrypt": "^5.0.2",
+    "@types/compression": "^1.7.5",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.12.13",
+    "@types/ws": "^8.5.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.10.4",
+    "@graphql-tools/schema": "^10.0.4",
+    "@prisma/client": "^5.14.0",
+    "apollo-server-express": "^3.13.0",
+    "bcrypt": "^5.1.1",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "graphql": "^16.8.1",
+    "graphql-depth-limit": "^1.1.0",
+    "graphql-import-node": "^0.0.5",
+    "graphql-tools": "^9.0.1",
+    "graphql-ws": "^5.16.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.2",
+    "postgres": "^3.4.4",
+    "prisma": "^5.14.0",
+    "ws": "^8.17.0"
+  },
+  "@snaplet/seed": {
+    "config": "prisma/seed/seed.config.ts"
+  }
+}

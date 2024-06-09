@@ -1,0 +1,84 @@
+version: "3"
+
+services:
+  node-app:
+    build: .
+    image: node-app
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    depends_on:
+      - postgres
+      - redis
+      - citus
+      - fluentd
+    command: yarn dev
+
+    volumes:
+      - .:/usr/src/node-app
+      - /usr/src/node-app/node_modules
+    networks:
+      - node-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      # To use a local directory instead:
+      # - ./postgres:/var/lib/postgresql/data
+
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: nyneDB
+    networks:
+      - node-network
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    command: ["redis-server", "--bind", "0.0.0.0", "--port", "6379"]
+    networks:
+      - node-network
+
+  citus:
+    image: citusdata/citus:latest
+    ports:
+      - "5433:5432"
+    volumes:
+      - citus:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=nyneDB_analytics
+      - POSTGRES_PASSWORD=docker
+    networks:
+      - node-network
+  fluentd:
+    container_name: nyne_fluentd
+    restart: always
+    build: ./fluentd
+    volumes:
+      - ./fluentd:/fluentd/etc
+    ports:
+      - "24224:24224"
+    networks:
+      - node-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+volumes:
+  postgres:
+  redis:
+  citus:
+
+networks:
+  node-network:
+    driver: bridge

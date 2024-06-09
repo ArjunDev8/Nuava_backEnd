@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DEV_DATABASE_URL")
+}
+
+model Student {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  email             String
+  age               Int
+  grade             String
+  schoolID          Int
+  teamID            Int?
+  moderatorAccess   Boolean
+  password          String
+  school            School              @relation(fields: [schoolID], references: [id])
+  team              Team?               @relation(fields: [teamID], references: [id])
+  tryoutParticipant TryoutParticipant[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime?           @updatedAt
+}
+
+model School {
+  id             Int       @id @default(autoincrement())
+  name           String
+  address        String
+  contactDetails String
+  passkey        String?
+  domain         String?
+  coaches        Coach[]
+  teams          Team[]
+  student        Student[]
+  tryouts        Tryout[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime? @updatedAt
+}
+
+model Coach {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String
+  schoolID  Int
+  password  String
+  school    School    @relation(fields: [schoolID], references: [id])
+  team      Team[]
+  tryouts   Tryout[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Team {
+  id       Int       @id @default(autoincrement())
+  name     String
+  sport    String
+  schoolID Int
+  coachID  Int
+  school   School    @relation(fields: [schoolID], references: [id])
+  coach    Coach     @relation(fields: [coachID], references: [id])
+  student  Student[]
+
+  homeFixtures Fixture[] @relation(name: "HomeTeam")
+  awayFixtures Fixture[] @relation(name: "AwayTeam")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+}
+
+model Fixture {
+  id           Int      @id @default(autoincrement())
+  location     String
+  homeTeamID   Int
+  awayTeamID   Int
+  tournamentID Int
+  startDate    DateTime
+  endDate      DateTime
+  homeTeam     Team     @relation(name: "HomeTeam", fields: [homeTeamID], references: [id])
+  awayTeam     Team     @relation(name: "AwayTeam", fields: [awayTeamID], references: [id])
+
+  tournament Tournament @relation(fields: [tournamentID], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime?  @updatedAt
+}
+
+model StatMetric {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  dataType    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+}
+
+model Tournament {
+  id        Int       @id @default(autoincrement())
+  name      String
+  location  String
+  date      DateTime
+  startDate DateTime
+  endDate   DateTime
+  fixtures  Fixture[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Dispute {
+  id                Int       @id @default(autoincrement())
+  scoreUpdateID     Int
+  disputingCoachID  Int
+  reason            String
+  resolutionDetails String
+  status            String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime? @updatedAt
+}
+
+model ScoreUpdate {
+  id                Int       @id @default(autoincrement())
+  fixtureID         Int
+  proposingCoachID  Int
+  confirmingCoachID Int
+  time              DateTime
+  scoreDetails      String
+  status            String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime? @updatedAt
+}
+
+model PlayerStat {
+  id        Int       @id @default(autoincrement())
+  fixtureID Int
+  studentID Int
+  metrics   Json
+  timestamp DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model MatchResult {
+  id                 Int       @id @default(autoincrement())
+  fixtureID          Int
+  finalScore         String
+  homeTeamScore      String
+  awayTeamScore      String
+  confirmationStatus String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime? @updatedAt
+}
+
+model Tryout {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  date              DateTime
+  location          String
+  coachID           Int
+  schoolID          Int
+  coach             Coach               @relation(fields: [coachID], references: [id])
+  school            School              @relation(fields: [schoolID], references: [id])
+  tryoutParticipant TryoutParticipant[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime?           @updatedAt
+}
+
+model TryoutParticipant {
+  id        Int       @id @default(autoincrement())
+  tryoutID  Int
+  studentID Int
+  status    String
+  tryout    Tryout    @relation(fields: [tryoutID], references: [id])
+  student   Student   @relation(fields: [studentID], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Otp {
+  id        Int       @id @default(autoincrement())
+  userLogin String
+  otp       String
+  status    String
+  purpose   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}

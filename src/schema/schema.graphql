@@ -1,0 +1,20 @@
+type Query {
+  student: Student!
+  coach: Coach!
+}
+
+type Mutation {
+  sendStudentEmailOTP(input: OtpInput!): OtpResult!
+  verifyEmailOTP(input: VerifyInput!): VerifyEmailResponse!
+  registerStudent(input: RegisterStudentInput!): RegisterStudentResponse!
+  loginStudent(input: LoginStudentInput!): LoginStudentResponse!
+
+  sendCoachEmailOTP(input: CoachOTPInput!): OtpResult!
+  verifyCoachEmailOTP(input: VerifyInput!): VerifyEmailResponse!
+  registerCoach(input: RegisterCoachInput!): RegisterCoachResponse!
+  loginCoach(input: LoginCoachInput!): LoginCoachResponse!
+}
+
+# type Subscription {
+
+# }
