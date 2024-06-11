@@ -23,6 +23,7 @@ model Student {
   schoolID          Int
   teamID            Int?
   moderatorAccess   Boolean
+  token             String?
   password          String
   school            School              @relation(fields: [schoolID], references: [id])
   team              Team?               @relation(fields: [teamID], references: [id])
@@ -51,6 +52,7 @@ model Coach {
   name      String
   email     String
   phone     String
+  token     String?
   schoolID  Int
   password  String
   school    School    @relation(fields: [schoolID], references: [id])

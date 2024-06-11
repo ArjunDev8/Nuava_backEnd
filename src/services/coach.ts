@@ -1,41 +1,15 @@
-import { Coach } from "@prisma/client";
+import { Coach, Student } from "@prisma/client";
+import * as crypto from "crypto";
 import bcrypt from "bcrypt";
+import jsonwebtoken from "jsonwebtoken";
 import {
+  FORGOT_PASSWORD_TOKEN_TIMEOUT,
   OTP_PURPOSE_FORGOT_PASSWORD,
   OTP_PURPOSE_REGISTER,
 } from "../constants";
 import { prisma } from "../db";
-import { createOTP, invalidateOTPs } from "./student";
+import { createOTP, invalidateOTPs, verifyJWTToken } from "./student";
 import { hashedPassword, isEmail } from "../helper/utils";
-
-// export const sendStudentOtp = async (email: string, purpose: string) => {
-//     try {
-//       if (purpose === OTP_PURPOSE_REGISTER) {
-//         const student = await findStudent(email);
-//         if (student) {
-//           throw new Error("Email already exists");
-//         } else {
-//           await invalidateOTPs(email);
-//           const otp = await createOTP(email, purpose);
-//           console.log("OTP sent to email");
-//         }
-//       } else if (purpose === OTP_PURPOSE_FORGOT_PASSWORD) {
-//         const student = await findStudent(email);
-//         if (!student) {
-//           throw new Error("Student not found");
-//         } else {
-//           await invalidateOTPs(email);
-//           const otp = await createOTP(email, purpose);
-
-//           console.log("OTP sent to email");
-//         }
-//       }
-
-//       return true;
-//     } catch (e: any) {
-//       throw e;
-//     }
-//   };
 
 export const sendCoachOtp = async (email: string, purpose: string) => {
   try {
@@ -180,4 +154,132 @@ export const findCoachByID = async (id: number): Promise<Coach | null> => {
   } catch (e: any) {
     throw new Error(e.message);
   }
+};
+
+export const generateForgotPasswordToken = async (
+  user: Coach | Student,
+  userType: UserType
+): Promise<string> => {
+  const token = crypto.randomBytes(32).toString("hex");
+  const email = user.email;
+
+  if (userType === UserEnum.STUDENT) {
+    await prisma.student.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        token,
+      },
+    });
+  } else {
+    await prisma.coach.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        token,
+      },
+    });
+  }
+
+  const jwtToken = jsonwebtoken.sign(
+    {
+      id: email,
+      token,
+    },
+    process.env.JWT_SECRET_KEY as string,
+    {
+      expiresIn: FORGOT_PASSWORD_TOKEN_TIMEOUT,
+    }
+  );
+  return jwtToken;
+};
+
+export enum UserEnum {
+  COACH = "COACH",
+  STUDENT = "STUDENT",
+}
+
+export type UserType = UserEnum.COACH | UserEnum.STUDENT;
+
+interface IResetPassword {
+  token: string;
+  password: string;
+  typeOfUser: UserEnum;
+}
+
+export const checkAndSetPassword = async (
+  input: IResetPassword
+): Promise<void> => {
+  const { token, password } = input;
+  if (token && password) {
+    const { token: resetToken } = verifyJWTToken(
+      token,
+      process.env.JWT_SECRET_KEY as string
+    );
+
+    if (resetToken) {
+      let user: Coach | Student | null = null;
+
+      if (input.typeOfUser === UserEnum.STUDENT) {
+        console.log("Inside reset", resetToken, input.typeOfUser);
+        user = await prisma.student.findFirst({
+          where: {
+            token: resetToken,
+          },
+        });
+      } else if (input.typeOfUser === UserEnum.COACH) {
+        user = await prisma.coach.findFirst({
+          where: {
+            token: resetToken,
+          },
+        });
+      }
+
+      console.log("Outside reset", resetToken, user);
+
+      if (user) {
+        const hashPassKey = hashedPassword(password);
+
+        console.log("Inside User", user);
+
+        if (input.typeOfUser === UserEnum.STUDENT) {
+          await prisma.student.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              password: hashPassKey,
+            },
+          });
+        } else if (input.typeOfUser === UserEnum.COACH) {
+          await prisma.coach.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              password: hashPassKey,
+            },
+          });
+        }
+
+        return;
+      }
+    }
+  }
+
+  throw new Error("Invalid or expired link to reset password");
+};
+
+export const getUserType = async (email: string): Promise<UserEnum> => {
+  const lcEmail = email.toLowerCase();
+
+  const coach = await findCoach(lcEmail);
+
+  if (coach) {
+    return UserEnum.COACH;
+  }
+
+  return UserEnum.STUDENT;
 };

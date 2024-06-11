@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Run Prisma migration
-npx prisma migrate dev --name added_passkey_to_school
+npx prisma migrate dev --name added token to the coach and student table
 
 # Generate Prisma client
 npx prisma generate
 
 # Execute command inside Docker container
-docker exec -it 1a2c72db713e sh -c 'cd /usr/src/node-app && npx prisma generate'
+docker exec -it 881198e736d7 sh -c 'cd /usr/src/node-app && npx prisma generate'

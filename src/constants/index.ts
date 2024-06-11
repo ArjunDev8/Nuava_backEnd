@@ -9,3 +9,5 @@ export const IST_TZ = "Asia/Kolkata";
 export const STUDENT_ROLE = "STUDENT";
 export const ADMIN_ROLE = "ADMIN";
 export const COACH_ROLE = "COACH";
+
+export const FORGOT_PASSWORD_TOKEN_TIMEOUT = 600;

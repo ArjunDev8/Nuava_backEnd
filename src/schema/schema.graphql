@@ -13,6 +13,9 @@ type Mutation {
   verifyCoachEmailOTP(input: VerifyInput!): VerifyEmailResponse!
   registerCoach(input: RegisterCoachInput!): RegisterCoachResponse!
   loginCoach(input: LoginCoachInput!): LoginCoachResponse!
+
+  forgotPassword(input: ForgotPasswordRequest!): Result!
+  resetPassword(input: ResetPasswordInput!): Result!
 }
 
 # type Subscription {

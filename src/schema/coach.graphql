@@ -29,8 +29,23 @@ type RegisterCoachResponse {
   token: String
 }
 
+type Result {
+  status: Boolean!
+  message: String
+}
+
 type LoginCoachResponse {
   status: Boolean
   message: String
   token: String
+}
+
+input ForgotPasswordRequest {
+  email: String!
+}
+
+input ResetPasswordInput {
+  token: String!
+  password: String!
+  email: String!
 }

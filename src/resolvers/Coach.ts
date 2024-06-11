@@ -9,15 +9,20 @@ import {
 } from "../services/student";
 import { ApolloError } from "apollo-server-express";
 import {
+  checkAndSetPassword,
   checkCoachExists,
   createCoach,
   findCoach,
   findCoachByID,
+  generateForgotPasswordToken,
+  getUserType,
   sendCoachOtp,
+  UserEnum,
   validatePasskey,
 } from "../services/coach";
 import { COACH_ROLE, OTP_PURPOSE_REGISTER } from "../constants";
 import { generateJWTToken, hashedPassword } from "../helper/utils";
+import { emailQueue, getEmailTemplate } from "../services/email";
 
 const CoachResolvers: IResolvers = {
   Query: {
@@ -131,6 +136,72 @@ const CoachResolvers: IResolvers = {
       } catch (err: any) {
         console.log("Error in loginCoach resolver: ", err.message);
         throw new ApolloError(err.message);
+      }
+    },
+
+    resetPassword: async (args, { input }) => {
+      try {
+        const userType = await getUserType(input.email);
+        console.log(userType, ">>>>>>>>>>>>>>");
+        await checkAndSetPassword({
+          ...input,
+          typeOfUser: userType,
+        });
+        return {
+          status: true,
+          message: "User password has been set successfully.",
+        };
+      } catch (e: any) {
+        return { status: false, message: e.message };
+      }
+    },
+
+    forgotPassword: async (args, { input }) => {
+      try {
+        const { email } = input;
+
+        const lcEmail = email.toLowerCase();
+
+        const userType = await getUserType(input.email);
+        let userRecord = null;
+
+        if (userType === UserEnum.STUDENT) {
+          userRecord = await checkStudentExists(lcEmail);
+        } else if (userType === UserEnum.COACH) {
+          userRecord = await checkCoachExists(lcEmail);
+        }
+
+        if (!userRecord) {
+          throw new Error("User does not exist");
+        }
+
+        const jwtToken = await generateForgotPasswordToken(
+          userRecord,
+          userType
+        );
+
+        const template = getEmailTemplate("resetpassword.html");
+
+        emailQueue.add(
+          "sendEmail",
+          {
+            subject: "Password Reset",
+            body: template,
+            toEmails: [{ email }],
+            templateParams: {
+              name: userRecord.name,
+              link: `https://${process.env.FRONTEND_SITENAME}/#/setpassword?id=${jwtToken}`,
+            },
+          },
+          { removeOnComplete: true }
+        );
+        return {
+          status: true,
+          message: "Email with reset instructions are sent.",
+        };
+      } catch (e: any) {
+        console.log(">>>>>>>>>>>>error", e.message);
+        return { status: false, message: e.message };
       }
     },
   },
