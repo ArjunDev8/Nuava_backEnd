@@ -210,7 +210,8 @@ export const checkPassword = async (
   const dbPassword = userRecord.password;
 
   const isValid = await bcrypt.compare(password, dbPassword);
-  const role = "phoneNumber" in userRecord ? COACH_ROLE : STUDENT_ROLE;
+  const role = "phone" in userRecord ? COACH_ROLE : STUDENT_ROLE;
+  console.log("role", role);
 
   if (isValid) {
     const id = userRecord.id;

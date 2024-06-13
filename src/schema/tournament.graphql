@@ -1,0 +1,26 @@
+type Tournament {
+  id: Int!
+  name: String!
+  location: String!
+  startDate: String!
+  endDate: String!
+  typeOfSport: String!
+  organizingSchoolId: Int!
+  createdAt: String!
+  updatedAt: String!
+}
+
+input CreateTournamentInput {
+  name: String!
+  startDate: String!
+  endDate: String!
+  location: String!
+  typeOfSport: String!
+  participatingSchools: [Int!]!
+}
+
+type CreateTournamentResponse {
+  status: Boolean!
+  message: String!
+  tournament: Tournament
+}

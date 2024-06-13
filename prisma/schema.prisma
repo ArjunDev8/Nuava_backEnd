@@ -33,7 +33,7 @@ model Student {
 }
 
 model School {
-  id             Int       @id @default(autoincrement())
+  id             Int                   @id @default(autoincrement())
   name           String
   address        String
   contactDetails String
@@ -43,8 +43,11 @@ model School {
   teams          Team[]
   student        Student[]
   tryouts        Tryout[]
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime? @updatedAt
+  participations ParticipatingSchool[]
+  tournaments    Tournament[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model Coach {
@@ -63,14 +66,15 @@ model Coach {
 }
 
 model Team {
-  id       Int       @id @default(autoincrement())
-  name     String
-  sport    String
-  schoolID Int
-  coachID  Int
-  school   School    @relation(fields: [schoolID], references: [id])
-  coach    Coach     @relation(fields: [coachID], references: [id])
-  student  Student[]
+  id          Int       @id @default(autoincrement())
+  name        String
+  sport       String
+  schoolID    Int
+  coachID     Int
+  typeOfSport String
+  school      School    @relation(fields: [schoolID], references: [id])
+  coach       Coach     @relation(fields: [coachID], references: [id])
+  student     Student[]
 
   homeFixtures Fixture[] @relation(name: "HomeTeam")
   awayFixtures Fixture[] @relation(name: "AwayTeam")
@@ -104,15 +108,18 @@ model StatMetric {
 }
 
 model Tournament {
-  id        Int       @id @default(autoincrement())
-  name      String
-  location  String
-  date      DateTime
-  startDate DateTime
-  endDate   DateTime
-  fixtures  Fixture[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  id                 Int                   @id @default(autoincrement())
+  name               String
+  location           String
+  startDate          DateTime
+  endDate            DateTime
+  typeOfSport        String
+  fixtures           Fixture[]
+  schools            ParticipatingSchool[]
+  organizingSchoolId Int
+  organizingSchool   School                @relation(fields: [organizingSchoolId], references: [id])
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime?             @updatedAt
 }
 
 model Dispute {
@@ -192,4 +199,13 @@ model Otp {
   purpose   String
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
+}
+
+model ParticipatingSchool {
+  schoolId     Int
+  tournamentId Int
+  school       School     @relation(fields: [schoolId], references: [id])
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+
+  @@id([schoolId, tournamentId])
 }
