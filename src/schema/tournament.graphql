@@ -4,7 +4,7 @@ type Tournament {
   location: String!
   startDate: String!
   endDate: String!
-  typeOfSport: String!
+  typeOfSport: typeOfSport!
   organizingSchoolId: Int!
   createdAt: String!
   updatedAt: String!
@@ -15,7 +15,7 @@ input CreateTournamentInput {
   startDate: String!
   endDate: String!
   location: String!
-  typeOfSport: String!
+  typeOfSport: typeOfSport!
   participatingSchools: [Int!]!
 }
 
@@ -23,4 +23,8 @@ type CreateTournamentResponse {
   status: Boolean!
   message: String!
   tournament: Tournament
+}
+
+enum typeOfSport {
+  FOOTBALL
 }

@@ -15,6 +15,7 @@ import {
   findCoach,
   findCoachByID,
   generateForgotPasswordToken,
+  getAllStudents,
   getUserType,
   sendCoachOtp,
   UserEnum,
@@ -41,6 +42,27 @@ const CoachResolvers: IResolvers = {
         return coach;
       } catch (err: any) {
         console.log("Error in coach resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+    getAllStudents: async (_, __, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const students = await getAllStudents({ schoolID: coach.schoolID });
+
+        return students;
+      } catch (err: any) {
+        console.log("Error in getAllStudents resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

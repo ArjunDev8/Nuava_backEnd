@@ -1,0 +1,17 @@
+input CreateTeamInput {
+  name: String!
+  typeOfSport: typeOfSport!
+  players: [Int]!
+}
+
+input getAllTeamsFilter {
+  typeOfSport: typeOfSport
+}
+
+type Team {
+  id: ID!
+  name: String
+  coachID: String
+  typeOfSport: typeOfSport
+  players: [Student]
+}

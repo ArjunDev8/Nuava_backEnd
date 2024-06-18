@@ -283,3 +283,21 @@ export const getUserType = async (email: string): Promise<UserEnum> => {
 
   return UserEnum.STUDENT;
 };
+
+export const getAllStudents = async ({
+  schoolID,
+}: {
+  schoolID: number;
+}): Promise<Array<Student>> => {
+  try {
+    const students = await prisma.student.findMany({
+      where: {
+        schoolID,
+      },
+    });
+
+    return students;
+  } catch (err: any) {
+    throw err;
+  }
+};

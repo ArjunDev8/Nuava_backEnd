@@ -6,9 +6,10 @@ import root from "./schema.graphql";
 import student from "./student.graphql";
 import coach from "./coach.graphql";
 import tournament from "./tournament.graphql";
+import team from "./team.graphql";
 
 const schema: GraphQLSchema = makeExecutableSchema({
-  typeDefs: [root, student, coach, tournament],
+  typeDefs: [root, student, coach, tournament, team],
   resolvers: allResolvers,
 });
 

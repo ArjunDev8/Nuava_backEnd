@@ -26,10 +26,19 @@ model Student {
   token             String?
   password          String
   school            School              @relation(fields: [schoolID], references: [id])
-  team              Team?               @relation(fields: [teamID], references: [id])
+  teams             StudentOnTeam[]
   tryoutParticipant TryoutParticipant[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime?           @updatedAt
+}
+
+model StudentOnTeam {
+  studentId Int
+  teamId    Int
+  student   Student @relation(fields: [studentId], references: [id])
+  team      Team    @relation(fields: [teamId], references: [id])
+
+  @@id([studentId, teamId])
 }
 
 model School {
@@ -66,20 +75,18 @@ model Coach {
 }
 
 model Team {
-  id          Int       @id @default(autoincrement())
-  name        String
-  sport       String
-  schoolID    Int
-  coachID     Int
-  typeOfSport String
-  school      School    @relation(fields: [schoolID], references: [id])
-  coach       Coach     @relation(fields: [coachID], references: [id])
-  student     Student[]
-
-  homeFixtures Fixture[] @relation(name: "HomeTeam")
-  awayFixtures Fixture[] @relation(name: "AwayTeam")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime? @updatedAt
+  id           Int             @id @default(autoincrement())
+  name         String
+  schoolID     Int
+  coachID      Int
+  typeOfSport  String
+  school       School          @relation(fields: [schoolID], references: [id])
+  coach        Coach           @relation(fields: [coachID], references: [id])
+  students     StudentOnTeam[]
+  homeFixtures Fixture[]       @relation(name: "HomeTeam")
+  awayFixtures Fixture[]       @relation(name: "AwayTeam")
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime?       @updatedAt
 }
 
 model Fixture {

@@ -2,6 +2,9 @@ type Query {
   student: Student!
   coach: Coach!
   getAllTournaments: [Tournament]
+  getTeamWithPlayers: Team!
+  getAllTeams(filters: getAllTeamsFilter): [Team]
+  getAllStudents: [Student]
 }
 
 type Mutation {
@@ -19,6 +22,8 @@ type Mutation {
   resetPassword(input: ResetPasswordInput!): Result!
 
   createTournament(input: CreateTournamentInput!): CreateTournamentResponse!
+
+  createTeam(input: CreateTeamInput!): Result!
 }
 
 # type Subscription {

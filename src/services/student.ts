@@ -1,4 +1,4 @@
-import { Coach, Otp, Student } from "@prisma/client";
+import { Coach, Student } from "@prisma/client";
 import jsonwebtoken from "jsonwebtoken";
 import {
   COACH_ROLE,

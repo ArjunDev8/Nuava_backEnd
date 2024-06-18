@@ -1,13 +1,14 @@
 import { ApolloError } from "apollo-server-errors";
 import { prisma } from "../db";
 import { Coach } from "@prisma/client";
+import { typesOfSport } from "./team";
 
 interface CreateTournamentInput {
   name: string;
   location: string;
   startDate: Date;
   endDate: Date;
-  typeOfSport: string;
+  typeOfSport: typesOfSport;
   participatingSchools: number[];
 }
 

@@ -57,6 +57,4 @@ type Student {
   schoolID: Int!
   grade: String!
   age: Int!
-  createdAt: String!
-  updatedAt: String!
 }

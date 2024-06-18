@@ -11,3 +11,7 @@ export const ADMIN_ROLE = "ADMIN";
 export const COACH_ROLE = "COACH";
 
 export const FORGOT_PASSWORD_TOKEN_TIMEOUT = 600;
+
+export const typesOfSport = {
+  FOOTBALL: "FOOTBALL",
+};

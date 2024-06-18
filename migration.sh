@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run Prisma migration
-npx prisma migrate dev --name added_participatingSchool_to_track_the_tournaments
+npx prisma migrate dev --name mutated_the_teams_table
 
 # Generate Prisma client
 npx prisma generate
