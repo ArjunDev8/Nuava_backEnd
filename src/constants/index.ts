@@ -15,3 +15,5 @@ export const FORGOT_PASSWORD_TOKEN_TIMEOUT = 600;
 export const typesOfSport = {
   FOOTBALL: "FOOTBALL",
 };
+
+export const BYESOPPONENT = -999;

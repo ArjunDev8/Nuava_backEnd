@@ -1,7 +1,7 @@
+import { Team } from "@prisma/client";
 import { ApolloError } from "apollo-server-errors";
-import { prisma } from "../db";
-import { Coach, Team } from "@prisma/client";
 import { typesOfSport } from "../constants";
+import { prisma } from "../db";
 
 export type typesOfSport = keyof typeof typesOfSport;
 

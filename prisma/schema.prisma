@@ -92,13 +92,14 @@ model Team {
 model Fixture {
   id           Int      @id @default(autoincrement())
   location     String
-  homeTeamID   Int
-  awayTeamID   Int
+  teamID1      Int
+  teamID2      Int
   tournamentID Int
+  isBye        Boolean  @default(false)
   startDate    DateTime
   endDate      DateTime
-  homeTeam     Team     @relation(name: "HomeTeam", fields: [homeTeamID], references: [id])
-  awayTeam     Team     @relation(name: "AwayTeam", fields: [awayTeamID], references: [id])
+  homeTeam     Team     @relation(name: "HomeTeam", fields: [teamID1], references: [id])
+  awayTeam     Team     @relation(name: "AwayTeam", fields: [teamID2], references: [id])
 
   tournament Tournament @relation(fields: [tournamentID], references: [id])
   createdAt  DateTime   @default(now())
@@ -124,9 +125,19 @@ model Tournament {
   fixtures           Fixture[]
   schools            ParticipatingSchool[]
   organizingSchoolId Int
+  tournamentDays     TournamentDay[]
   organizingSchool   School                @relation(fields: [organizingSchoolId], references: [id])
   createdAt          DateTime              @default(now())
   updatedAt          DateTime?             @updatedAt
+}
+
+model TournamentDay {
+  id           Int        @id @default(autoincrement())
+  date         DateTime
+  startTime    DateTime
+  endTime      DateTime
+  tournamentId Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
 }
 
 model Dispute {
