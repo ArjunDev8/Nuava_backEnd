@@ -47,4 +47,7 @@ Please note that you need to have Prisma CLI installed in your Docker container 
 
 <!-- Student pass: pasdaskdjskdj -->
 <!-- email: hussainsamar36@gmail.com -->
+
 # nuava-sports-project
+
+Dates should be ISO-8601 format ==> Client->server

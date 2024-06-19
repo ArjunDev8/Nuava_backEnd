@@ -3,6 +3,7 @@ import { prisma } from "../db";
 import { Coach, TournamentDay } from "@prisma/client";
 import { typesOfSport } from "./team";
 import { BYESOPPONENT } from "../constants";
+import { areTournamentDaysValid } from "../helper/utils";
 
 interface CreateTournamentInput {
   name: string;
@@ -12,7 +13,11 @@ interface CreateTournamentInput {
   typeOfSport: typesOfSport;
   participatingSchools: number[];
   intervalBetweenMatches: number;
-  tournamentDays: TournamentDay[];
+  tournamentDays: {
+    date: Date;
+    startTime: Date;
+    endTime: Date;
+  }[];
   matchDuration: number;
 }
 
@@ -29,6 +34,9 @@ export const createTournament = async (
         location,
         typeOfSport,
         participatingSchools,
+        tournamentDays,
+        intervalBetweenMatches,
+        matchDuration,
       } = input;
 
       const startFormatedDate = new Date(startDate);
@@ -44,8 +52,12 @@ export const createTournament = async (
         );
       }
 
-      if (input.tournamentDays.length === 0) {
+      if (tournamentDays.length === 0) {
         throw new ApolloError("At least one tournament day is required");
+      }
+
+      if (!areTournamentDaysValid({ startDate, endDate, tournamentDays })) {
+        throw new ApolloError("Invalid tournament days");
       }
 
       const tournament = await prisma.tournament.create({
@@ -57,42 +69,59 @@ export const createTournament = async (
           endDate: endFormatedDate,
           organizingSchoolId: coach.schoolID,
           tournamentDays: {
-            create: input.tournamentDays,
+            create: tournamentDays,
           },
         },
       });
 
       let participatingTeams = [];
       for (const schoolId of participatingSchools) {
-        await prisma.participatingSchool.create({
-          data: {
-            schoolId: schoolId,
-            tournamentId: tournament.id,
+        const isSchoolAvailable = await prisma.school.findUnique({
+          where: {
+            id: schoolId,
           },
         });
-        const allTeamsFromParticipatingSchool = (await prisma.team.findMany({
+        if (isSchoolAvailable) {
+          await prisma.participatingSchool.create({
+            data: {
+              schoolId: schoolId,
+              tournamentId: tournament.id,
+            },
+          });
+        }
+
+        let allTeamsFromParticipatingSchool = await prisma.team.findMany({
           where: {
             schoolID: schoolId,
           },
-        })) || [
-          {
-            id: schoolId + 999,
-            name: `DummyTeam${schoolId}`,
-            schoolID: schoolId,
-            typeOfSport: "FOOTBALL",
-          },
-        ];
+        });
+
+        if (allTeamsFromParticipatingSchool.length === 0) {
+          allTeamsFromParticipatingSchool = [
+            {
+              id: schoolId + 999,
+              name: `DummyTeam${schoolId}`,
+              schoolID: schoolId,
+              typeOfSport: "FOOTBALL",
+              coachID: coach.id,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ];
+        }
 
         participatingTeams.push(...allTeamsFromParticipatingSchool);
       }
 
-      // for (let i = participatingTeams.length - 1; i > 0; i--) {
-      //   const j = Math.floor(Math.random() * (i + 1));
-      //   [participatingTeams[i], participatingTeams[j]] = [
-      //     participatingTeams[j],
-      //     participatingTeams[i],
-      //   ];
-      // }
+      console.log("PARTICIPATING", participatingTeams);
+
+      for (let i = participatingTeams.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [participatingTeams[i], participatingTeams[j]] = [
+          participatingTeams[j],
+          participatingTeams[i],
+        ];
+      }
 
       let byeTeam = null;
       if (participatingTeams.length % 2 !== 0) {
@@ -129,20 +158,33 @@ export const createTournament = async (
       // }
       // Assuming matchDuration is the duration of a match in minutes
       // and intervalBetweenMatches is the interval between matches in minutes
-      const matchDuration = 90;
-      const intervalBetweenMatches = 30;
 
       // Calculate the total duration of the tournament
       const totalMatches = participatingTeams.length / 2;
+
       const totalDuration =
         totalMatches * (matchDuration + intervalBetweenMatches);
 
+      const totalAllotedTimeBasedOnDays = tournamentDays.reduce((acc, day) => {
+        const dayDuration =
+          (new Date(day.endTime).getTime() -
+            new Date(day.startTime).getTime()) /
+          60000;
+        return acc + dayDuration;
+      }, 0);
+
+      if (totalDuration > totalAllotedTimeBasedOnDays) {
+        throw new ApolloError(
+          "Total duration of the tournament exceeds the total alloted time based on days"
+        );
+      }
+
       // Calculate the duration of each day
-      const dayDuration = totalDuration / input.tournamentDays.length;
+      const dayDuration = totalDuration / tournamentDays.length;
 
       // Initialize the current day and time
       let currentDay = 0;
-      let currentTime = new Date(input.tournamentDays[currentDay].startTime);
+      let currentTime = new Date(tournamentDays[currentDay].startTime);
 
       for (let i = 0; i < participatingTeams.length; i += 2) {
         if (i + 1 < participatingTeams.length) {
@@ -168,11 +210,9 @@ export const createTournament = async (
           );
 
           // If the current time is past the end of the current day, move to the next day
-          if (
-            currentTime > new Date(input.tournamentDays[currentDay].endTime)
-          ) {
+          if (currentTime > new Date(tournamentDays[currentDay].endTime)) {
             currentDay++;
-            currentTime = new Date(input.tournamentDays[currentDay].startTime);
+            currentTime = new Date(tournamentDays[currentDay].startTime);
           }
         }
       }
@@ -189,6 +229,9 @@ export const createTournament = async (
             startDate: currentTime,
             endDate: endTime,
             location: "TBD",
+            isBye: true,
+            winnerID: byeTeam.id,
+            round: 2,
           },
         });
       }

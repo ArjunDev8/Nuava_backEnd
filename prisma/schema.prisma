@@ -75,18 +75,17 @@ model Coach {
 }
 
 model Team {
-  id           Int             @id @default(autoincrement())
-  name         String
-  schoolID     Int
-  coachID      Int
-  typeOfSport  String
-  school       School          @relation(fields: [schoolID], references: [id])
-  coach        Coach           @relation(fields: [coachID], references: [id])
-  students     StudentOnTeam[]
-  homeFixtures Fixture[]       @relation(name: "HomeTeam")
-  awayFixtures Fixture[]       @relation(name: "AwayTeam")
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime?       @updatedAt
+  id          Int             @id @default(autoincrement())
+  name        String
+  schoolID    Int
+  coachID     Int
+  typeOfSport String
+  school      School          @relation(fields: [schoolID], references: [id])
+  coach       Coach           @relation(fields: [coachID], references: [id])
+  students    StudentOnTeam[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model Fixture {
@@ -98,8 +97,8 @@ model Fixture {
   isBye        Boolean  @default(false)
   startDate    DateTime
   endDate      DateTime
-  homeTeam     Team     @relation(name: "HomeTeam", fields: [teamID1], references: [id])
-  awayTeam     Team     @relation(name: "AwayTeam", fields: [teamID2], references: [id])
+  round        Int      @default(1)
+  winnerID     Int?
 
   tournament Tournament @relation(fields: [tournamentID], references: [id])
   createdAt  DateTime   @default(now())

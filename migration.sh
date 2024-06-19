@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run Prisma migration
-npx prisma migrate dev --name mutated_the_teams_table
+npx prisma migrate dev --name added_two_new_Attributes_to_fixture_table
 
 # Generate Prisma client
 npx prisma generate
