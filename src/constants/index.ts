@@ -16,4 +16,12 @@ export const typesOfSport = {
   FOOTBALL: "FOOTBALL",
 };
 
+export const playerLimits = {
+  FOOTBALL: {
+    min: 5,
+    max: 20,
+  },
+  //add more in future
+};
+
 export const BYESOPPONENT = -999;

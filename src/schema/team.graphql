@@ -3,6 +3,9 @@ input CreateTeamInput {
   typeOfSport: typeOfSport!
   players: [Int]!
 }
+input AvailablePlayersInput {
+  typeOfSport: typeOfSport!
+}
 
 input getAllTeamsFilter {
   typeOfSport: typeOfSport

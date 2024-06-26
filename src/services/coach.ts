@@ -10,6 +10,7 @@ import {
 import { prisma } from "../db";
 import { createOTP, invalidateOTPs, verifyJWTToken } from "./student";
 import { hashedPassword, isEmail } from "../helper/utils";
+import { typesOfSport } from "./team";
 
 export const sendCoachOtp = async (email: string, purpose: string) => {
   try {

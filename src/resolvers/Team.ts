@@ -1,7 +1,12 @@
 import { IResolvers } from "@graphql-tools/utils";
 import { ApolloError } from "apollo-server-express";
 import { verifyJWTToken } from "../services/student";
-import { createTeam, getAllTeams, getTeamWithPlayers } from "../services/team";
+import {
+  createTeam,
+  getAllAvailablePlayers,
+  getAllTeams,
+  getTeamWithPlayers,
+} from "../services/team";
 import { findCoachByID, UserEnum } from "../services/coach";
 import { COACH_ROLE } from "../constants";
 
@@ -48,6 +53,33 @@ const TournamentResolvers: IResolvers = {
         const teams = await getTeamWithPlayers(teamId);
 
         return teams;
+      } catch (err: any) {
+        throw new ApolloError(err.message);
+      }
+    },
+
+    getAllAvailablePlayers: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+        const { schoolID } = coach;
+        const { typeOfSport } = input;
+
+        // Assuming getAllAvailablePlayers is a service function that returns all available players
+        const players = await getAllAvailablePlayers({
+          schoolID,
+          typeOfSport,
+        });
+
+        return players;
       } catch (err: any) {
         throw new ApolloError(err.message);
       }
