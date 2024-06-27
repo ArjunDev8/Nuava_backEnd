@@ -211,3 +211,29 @@ export const generateJWTToken = ({
 
   return token;
 };
+
+export function areTournamentDaysValid(tournament: any): boolean {
+  const { startDate, endDate, tournamentDays } = tournament;
+
+  if (!startDate || !endDate) {
+    return false; // Start and end dates must be specified
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  for (const day of tournamentDays) {
+    if (!day.date) {
+      return false; // Each tournament day must have a date
+    }
+
+    const dayDate = new Date(day.date);
+
+    // Check if the tournament day falls within the start and end dates
+    if (dayDate < start || dayDate > end) {
+      return false;
+    }
+  }
+
+  return true;
+}

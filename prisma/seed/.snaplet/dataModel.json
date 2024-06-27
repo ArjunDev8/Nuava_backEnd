@@ -474,40 +474,32 @@
           "maxLength": null
         },
         {
-          "name": "Team_Fixture_teamID1ToTeam",
-          "type": "Team",
+          "id": "public.Fixture.round",
+          "name": "round",
+          "columnName": "round",
+          "type": "int4",
           "isRequired": true,
-          "kind": "object",
-          "relationName": "Fixture_teamID1ToTeam",
-          "relationFromFields": [
-            "teamID1"
-          ],
-          "relationToFields": [
-            "id"
-          ],
+          "kind": "scalar",
           "isList": false,
-          "isId": false,
           "isGenerated": false,
           "sequence": false,
-          "hasDefaultValue": false
+          "hasDefaultValue": true,
+          "isId": false,
+          "maxLength": null
         },
         {
-          "name": "Team_Fixture_teamID2ToTeam",
-          "type": "Team",
-          "isRequired": true,
-          "kind": "object",
-          "relationName": "Fixture_teamID2ToTeam",
-          "relationFromFields": [
-            "teamID2"
-          ],
-          "relationToFields": [
-            "id"
-          ],
+          "id": "public.Fixture.winnerID",
+          "name": "winnerID",
+          "columnName": "winnerID",
+          "type": "int4",
+          "isRequired": false,
+          "kind": "scalar",
           "isList": false,
-          "isId": false,
           "isGenerated": false,
           "sequence": false,
-          "hasDefaultValue": false
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
         },
         {
           "name": "Tournament",
@@ -1198,6 +1190,13 @@
           "name": "School_pkey",
           "fields": [
             "id"
+          ],
+          "nullNotDistinct": false
+        },
+        {
+          "name": "School_name_key",
+          "fields": [
+            "name"
           ],
           "nullNotDistinct": false
         }
@@ -1906,34 +1905,6 @@
             "id"
           ],
           "isList": false,
-          "isId": false,
-          "isGenerated": false,
-          "sequence": false,
-          "hasDefaultValue": false
-        },
-        {
-          "name": "Fixture_Fixture_teamID1ToTeam",
-          "type": "Fixture",
-          "isRequired": false,
-          "kind": "object",
-          "relationName": "Fixture_teamID1ToTeam",
-          "relationFromFields": [],
-          "relationToFields": [],
-          "isList": true,
-          "isId": false,
-          "isGenerated": false,
-          "sequence": false,
-          "hasDefaultValue": false
-        },
-        {
-          "name": "Fixture_Fixture_teamID2ToTeam",
-          "type": "Fixture",
-          "isRequired": false,
-          "kind": "object",
-          "relationName": "Fixture_teamID2ToTeam",
-          "relationFromFields": [],
-          "relationToFields": [],
-          "isList": true,
           "isId": false,
           "isGenerated": false,
           "sequence": false,

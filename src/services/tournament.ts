@@ -3,6 +3,7 @@ import { prisma } from "../db";
 import { Coach, TournamentDay } from "@prisma/client";
 import { typesOfSport } from "./team";
 import { BYESOPPONENT } from "../constants";
+import { areTournamentDaysValid } from "../helper/utils";
 
 interface CreateTournamentInput {
   name: string;
@@ -10,9 +11,13 @@ interface CreateTournamentInput {
   startDate: Date;
   endDate: Date;
   typeOfSport: typesOfSport;
-  participatingSchools: number[];
+  participatingSchoolNames: string[];
   intervalBetweenMatches: number;
-  tournamentDays: TournamentDay[];
+  tournamentDays: {
+    date: Date;
+    startTime: Date;
+    endTime: Date;
+  }[];
   matchDuration: number;
 }
 
@@ -28,7 +33,10 @@ export const createTournament = async (
         name,
         location,
         typeOfSport,
-        participatingSchools,
+        participatingSchoolNames,
+        tournamentDays,
+        intervalBetweenMatches,
+        matchDuration,
       } = input;
 
       const startFormatedDate = new Date(startDate);
@@ -38,14 +46,54 @@ export const createTournament = async (
         throw new ApolloError("Start date cannot be greater than end date");
       }
 
-      if (participatingSchools.length < 2) {
+      if (participatingSchoolNames.length < 2) {
         throw new ApolloError(
           "At least two schools are required to create a tournament"
         );
       }
 
-      if (input.tournamentDays.length === 0) {
+      if (tournamentDays.length === 0) {
         throw new ApolloError("At least one tournament day is required");
+      }
+
+      if (!areTournamentDaysValid({ startDate, endDate, tournamentDays })) {
+        throw new ApolloError("Invalid tournament days");
+      }
+
+      // Create or find the participating schools
+      const participatingSchools = await Promise.all(
+        participatingSchoolNames.map(async (schoolName) => {
+          const school = await prisma.school.upsert({
+            where: {
+              name: schoolName,
+            },
+            update: {},
+            create: {
+              name: schoolName,
+              address: "TBD", // Use 'TBD' or similar for fields you don't have yet
+              contactDetails: "TBD", // Use 'TBD' or similar for fields you don't have yet
+              // For optional fields, you can choose to omit them or provide a default value
+              passkey: "TBD", // Optional
+              domain: "TBD", // Optional
+            },
+          });
+
+          return school;
+        })
+      );
+
+      for (const schoolID of participatingSchools) {
+        const isSchoolAvailable = await prisma.school.findUnique({
+          where: {
+            id: schoolID.id,
+          },
+        });
+
+        if (!isSchoolAvailable) {
+          throw new ApolloError(
+            `School:${schoolID}is not available for the tournament`
+          );
+        }
       }
 
       const tournament = await prisma.tournament.create({
@@ -57,7 +105,7 @@ export const createTournament = async (
           endDate: endFormatedDate,
           organizingSchoolId: coach.schoolID,
           tournamentDays: {
-            create: input.tournamentDays,
+            create: tournamentDays,
           },
         },
       });
@@ -66,33 +114,43 @@ export const createTournament = async (
       for (const schoolId of participatingSchools) {
         await prisma.participatingSchool.create({
           data: {
-            schoolId: schoolId,
+            schoolId: schoolId.id,
             tournamentId: tournament.id,
           },
         });
-        const allTeamsFromParticipatingSchool = (await prisma.team.findMany({
+
+        let allTeamsFromParticipatingSchool = await prisma.team.findMany({
           where: {
-            schoolID: schoolId,
+            schoolID: schoolId.id,
           },
-        })) || [
-          {
-            id: schoolId + 999,
-            name: `DummyTeam${schoolId}`,
-            schoolID: schoolId,
-            typeOfSport: "FOOTBALL",
-          },
-        ];
+        });
+
+        if (allTeamsFromParticipatingSchool.length === 0) {
+          allTeamsFromParticipatingSchool = [
+            {
+              id: Math.random() * 1000 * schoolId.id,
+              name: `DummyTeam${schoolId}`,
+              schoolID: schoolId.id,
+              typeOfSport: "FOOTBALL",
+              coachID: coach.id,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ];
+        }
 
         participatingTeams.push(...allTeamsFromParticipatingSchool);
       }
 
-      // for (let i = participatingTeams.length - 1; i > 0; i--) {
-      //   const j = Math.floor(Math.random() * (i + 1));
-      //   [participatingTeams[i], participatingTeams[j]] = [
-      //     participatingTeams[j],
-      //     participatingTeams[i],
-      //   ];
-      // }
+      console.log("PARTICIPATING", participatingTeams);
+
+      for (let i = participatingTeams.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [participatingTeams[i], participatingTeams[j]] = [
+          participatingTeams[j],
+          participatingTeams[i],
+        ];
+      }
 
       let byeTeam = null;
       if (participatingTeams.length % 2 !== 0) {
@@ -100,49 +158,31 @@ export const createTournament = async (
         // participatingTeams.push(byeTeam);
       }
 
-      // for (let i = 0; i < participatingTeams.length; i += 2) {
-      //   if (i + 1 < participatingTeams.length) {
-      //     await prisma.fixture.create({
-      //       data: {
-      //         teamID1: participatingTeams[i].id,
-      //         teamID2: participatingTeams[i + 1].id,
-      //         tournamentID: tournament.id,
-      //         startDate: new Date(),
-      //         endDate: new Date(),
-      //         location: "TBD",
-      //       },
-      //     });
-      //   }
-      // }
-
-      // if (byeTeam) {
-      //   await prisma.fixture.create({
-      //     data: {
-      //       teamID1: byeTeam.id,
-      //       teamID2: BYESOPPONENT,
-      //       tournamentID: tournament.id,
-      //       startDate: new Date(),
-      //       endDate: new Date(),
-      //       location: "TBD",
-      //     },
-      //   });
-      // }
-      // Assuming matchDuration is the duration of a match in minutes
-      // and intervalBetweenMatches is the interval between matches in minutes
-      const matchDuration = 90;
-      const intervalBetweenMatches = 30;
-
-      // Calculate the total duration of the tournament
       const totalMatches = participatingTeams.length / 2;
+
       const totalDuration =
         totalMatches * (matchDuration + intervalBetweenMatches);
 
+      const totalAllotedTimeBasedOnDays = tournamentDays.reduce((acc, day) => {
+        const dayDuration =
+          (new Date(day.endTime).getTime() -
+            new Date(day.startTime).getTime()) /
+          60000;
+        return acc + dayDuration;
+      }, 0);
+
+      if (totalDuration > totalAllotedTimeBasedOnDays) {
+        throw new ApolloError(
+          "Total duration of the tournament exceeds the total alloted time based on days"
+        );
+      }
+
       // Calculate the duration of each day
-      const dayDuration = totalDuration / input.tournamentDays.length;
+      const dayDuration = totalDuration / tournamentDays.length;
 
       // Initialize the current day and time
       let currentDay = 0;
-      let currentTime = new Date(input.tournamentDays[currentDay].startTime);
+      let currentTime = new Date(tournamentDays[currentDay].startTime);
 
       for (let i = 0; i < participatingTeams.length; i += 2) {
         if (i + 1 < participatingTeams.length) {
@@ -168,11 +208,9 @@ export const createTournament = async (
           );
 
           // If the current time is past the end of the current day, move to the next day
-          if (
-            currentTime > new Date(input.tournamentDays[currentDay].endTime)
-          ) {
+          if (currentTime > new Date(tournamentDays[currentDay].endTime)) {
             currentDay++;
-            currentTime = new Date(input.tournamentDays[currentDay].startTime);
+            currentTime = new Date(tournamentDays[currentDay].startTime);
           }
         }
       }
@@ -189,12 +227,123 @@ export const createTournament = async (
             startDate: currentTime,
             endDate: endTime,
             location: "TBD",
+            isBye: true,
+            winnerID: byeTeam.id,
+            round: 2,
           },
         });
       }
     });
 
     return result;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+//GET TOURNAMENT
+
+//GET ALL FIXTURES OF TOURNAMENT
+
+//EDIT FIXTURE
+
+//SWAP TEAMS IN FIXTURE
+export const swapTeamsInFixture = async (
+  fixtureId1: number,
+  fixtureId2: number,
+  team1Id: number,
+  team2Id: number
+) => {
+  try {
+    const fixture1 = await prisma.fixture.findFirst({
+      where: {
+        id: fixtureId1,
+      },
+    });
+
+    const fixture2 = await prisma.fixture.findFirst({
+      where: {
+        id: fixtureId2,
+      },
+    });
+
+    if (!fixture1 || !fixture2) {
+      throw new ApolloError("Fixtures not found in the tournament");
+    }
+
+    const updatedFixture1 = await prisma.fixture.update({
+      where: {
+        id: fixtureId1,
+      },
+      data: {
+        teamID1: team2Id,
+        teamID2: team1Id,
+      },
+    });
+
+    const updatedFixture2 = await prisma.fixture.update({
+      where: {
+        id: fixtureId2,
+      },
+      data: {
+        teamID1: team1Id,
+        teamID2: team2Id,
+      },
+    });
+
+    return { updatedFixture1, updatedFixture2 };
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+//DELETE FIXTURE
+export const deleteFixture = async (fixtureId: number) => {
+  try {
+    const fixture = await prisma.fixture.findFirst({
+      where: {
+        id: fixtureId,
+      },
+    });
+
+    if (!fixture) {
+      throw new ApolloError("Fixture not found");
+    }
+
+    await prisma.fixture.delete({
+      where: {
+        id: fixtureId,
+      },
+    });
+
+    return fixture;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+//EDIT TOURNAMENT
+
+//DELETE TOURNAMENT
+export const deleteTournament = async (tournamentId: number) => {
+  try {
+    const tournament = await prisma.tournament.findFirst({
+      where: {
+        id: tournamentId,
+      },
+    });
+
+    if (!tournament) {
+      throw new ApolloError("Tournament not found");
+    }
+
+    await prisma.tournament.delete({
+      where: {
+        id: tournamentId,
+      },
+    });
+
+    return tournament;
   } catch (err: any) {
     throw err;
   }

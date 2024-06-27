@@ -1,6 +1,6 @@
-import { Team } from "@prisma/client";
+import { Student, Team } from "@prisma/client";
 import { ApolloError } from "apollo-server-errors";
-import { typesOfSport } from "../constants";
+import { playerLimits, typesOfSport } from "../constants";
 import { prisma } from "../db";
 
 export type typesOfSport = keyof typeof typesOfSport;
@@ -51,6 +51,58 @@ export const getAllTeams = async ({
   }
 };
 
+export const getAllAvailablePlayers = async ({
+  schoolID,
+  typeOfSport,
+}: {
+  schoolID: number;
+  typeOfSport: string;
+}): Promise<Array<Student>> => {
+  try {
+    const allTeamsOfSchool = await prisma.team.findMany({
+      where: {
+        schoolID,
+        typeOfSport,
+      },
+    });
+
+    if (!allTeamsOfSchool.length) {
+      return [];
+    }
+
+    const teamIds = allTeamsOfSchool.map((team) => team.id);
+
+    const allFreePlayers = await prisma.student.findMany({
+      where: {
+        schoolID,
+
+        NOT: {
+          teams: {
+            some: {
+              teamId: {
+                in: teamIds,
+              },
+            },
+          },
+        },
+      },
+      include: {
+        teams: {
+          include: {
+            team: true,
+          },
+        },
+      },
+    });
+
+    console.log(allFreePlayers.length, "students");
+
+    return allFreePlayers;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
 export const getTeamWithPlayers = async (teamId: number): Promise<Team> => {
   try {
     const team = await prisma.team.findFirst({
@@ -74,13 +126,22 @@ export const getTeamWithPlayers = async (teamId: number): Promise<Team> => {
 
 export const createTeam = async (input: createTeamInput, coachId: number) => {
   try {
-    const result = await prisma.$transaction(async (prisma) => {
-      const { players } = input;
-      const hasDuplicatePlayers = new Set(players).size !== players.length;
+    const { players, typeOfSport } = input;
+    const hasDuplicatePlayers = new Set(players).size !== players.length;
 
-      if (hasDuplicatePlayers) {
-        throw new ApolloError("Duplicate players not allowed");
-      }
+    if (hasDuplicatePlayers) {
+      throw new ApolloError("Duplicate players not allowed");
+    }
+
+    //VALIDATE THE MIN AND MAX NUMBER OF PLAYERS IN A TEAM
+    if (players.length < playerLimits[typeOfSport].min) {
+      throw new ApolloError("Specify more than one player to create a team");
+    }
+
+    if (players.length > playerLimits[typeOfSport].max) {
+      throw new ApolloError("Specify less than 10 players to create a team");
+    }
+    const result = await prisma.$transaction(async (prisma) => {
       const coach = await prisma.coach.findFirst({
         where: {
           id: coachId,
@@ -120,6 +181,98 @@ export const createTeam = async (input: createTeamInput, coachId: number) => {
           data: {
             studentId: playerId,
             teamId: team.id,
+          },
+        });
+      }
+
+      return team;
+    });
+
+    return result;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const deleteTeam = async (teamId: number) => {
+  try {
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+    });
+
+    if (!team) {
+      throw new ApolloError("Team not found");
+    }
+
+    await prisma.team.delete({
+      where: {
+        id: teamId,
+      },
+    });
+
+    return team;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const editTeam = async (teamId: number, input: createTeamInput) => {
+  try {
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+    });
+
+    if (!team) {
+      throw new ApolloError("Team not found");
+    }
+
+    const result = await prisma.$transaction(async (prisma) => {
+      const { players, typeOfSport } = input;
+      const hasDuplicatePlayers = new Set(players).size !== players.length;
+
+      //VALIDATE THE MIN AND MAX NUMBER OF PLAYERS IN A TEAM
+      if (players.length < playerLimits[typeOfSport].min) {
+        throw new ApolloError("Specify more than one player to create a team");
+      }
+
+      if (players.length > playerLimits[typeOfSport].max) {
+        throw new ApolloError("Specify less than 10 players to create a team");
+      }
+
+      if (hasDuplicatePlayers) {
+        throw new ApolloError("Duplicate players not allowed");
+      }
+
+      if (!(players.length > 0)) {
+        throw new ApolloError("Specify more than one player to create a team");
+      }
+
+      await prisma.studentOnTeam.deleteMany({
+        where: {
+          teamId: teamId,
+        },
+      });
+
+      // Assuming players is an array of player IDs
+      for (const playerId of players) {
+        const student = await prisma.student.findFirst({
+          where: {
+            id: playerId,
+          },
+        });
+
+        if (!student) {
+          throw new ApolloError(`Student with ID ${playerId} not found`);
+        }
+
+        await prisma.studentOnTeam.create({
+          data: {
+            studentId: playerId,
+            teamId: teamId,
           },
         });
       }

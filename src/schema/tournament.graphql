@@ -10,13 +10,23 @@ type Tournament {
   updatedAt: String!
 }
 
+input TournamentDay {
+  date: String!
+  startTime: String!
+  endTime: String!
+}
+
 input CreateTournamentInput {
   name: String!
+  location: String!
   startDate: String!
   endDate: String!
-  location: String!
   typeOfSport: typeOfSport!
-  participatingSchools: [Int!]!
+  organizingSchoolId: Int!
+  intervalBetweenMatches: Int!
+  tournamentDays: [TournamentDay!]!
+  matchDuration: Int!
+  participatingSchoolNames: [String!]!
 }
 
 type CreateTournamentResponse {
