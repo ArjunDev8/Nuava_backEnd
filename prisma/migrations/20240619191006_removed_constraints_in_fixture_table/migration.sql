@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Fixture" ADD COLUMN     "round" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN     "winnerID" INTEGER;
