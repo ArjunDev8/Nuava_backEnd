@@ -10,11 +10,21 @@ type Tournament {
   updatedAt: String!
 }
 
-input TournamentDay {
-  date: String!
-  startTime: String!
-  endTime: String!
-}
+# interface CreateTournamentInput {
+#   name: string;
+#   location: string;
+#   startDate: Date;
+#   endDate: Date;
+#   typeOfSport: typesOfSport;
+#   participatingSchoolNames: string[];
+#   intervalBetweenMatches: number;
+#   tournamentDays: {
+#     date: Date;
+#     startTime: Date;
+#     endTime: Date;
+#   }[];
+#   matchDuration: number;
+# }
 
 input CreateTournamentInput {
   name: String!
@@ -22,11 +32,44 @@ input CreateTournamentInput {
   startDate: String!
   endDate: String!
   typeOfSport: typeOfSport!
-  organizingSchoolId: Int!
   intervalBetweenMatches: Int!
-  tournamentDays: [TournamentDay!]!
+  tournamentDays: [TournamentDayInput!]!
   matchDuration: Int!
   participatingSchoolNames: [String!]!
+}
+
+input TournamentDayInput {
+  date: String!
+  startTime: String!
+  endTime: String!
+}
+
+input EditTournamentInput {
+  tournamentID: Int!
+  name: String
+  location: String
+  startDate: String
+  endDate: String
+  typeOfSport: typeOfSport
+  intervalBetweenMatches: Int
+  tournamentDays: [TournamentDayInput!]
+  matchDuration: Int
+  participatingSchoolNames: [String!]
+}
+
+input DeleteTournamentInput {
+  id: Int!
+}
+
+type DeleteTournamentResponse {
+  status: Boolean!
+  message: String!
+}
+
+type EditTournamentResponse {
+  status: Boolean!
+  message: String!
+  tournament: Tournament
 }
 
 type CreateTournamentResponse {

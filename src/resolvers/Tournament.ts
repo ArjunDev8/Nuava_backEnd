@@ -25,7 +25,12 @@ import {
 import { COACH_ROLE, OTP_PURPOSE_REGISTER } from "../constants";
 import { generateJWTToken, hashedPassword } from "../helper/utils";
 import { emailQueue, getEmailTemplate } from "../services/email";
-import { createTournament, getAllTournaments } from "../services/tournament";
+import {
+  createTournament,
+  deleteTournament,
+  editTournament,
+  getAllTournaments,
+} from "../services/tournament";
 
 const TournamentResolvers: IResolvers = {
   Query: {
@@ -83,6 +88,60 @@ const TournamentResolvers: IResolvers = {
         };
       } catch (err: any) {
         console.log("Error in createTournament resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    editTournament: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const tournament = await editTournament(
+          input,
+          coach,
+          input.tournamentID
+        );
+
+        return {
+          status: true,
+          message: "Tournament updated successfully",
+          tournament,
+        };
+      } catch (err: any) {
+        console.log("Error in editTournament resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+    deleteTournament: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const { id: tournamentID } = input;
+
+        await deleteTournament(tournamentID, coach);
+
+        return {
+          status: true,
+          message: "Tournament deleted successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in deleteTournament resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },
