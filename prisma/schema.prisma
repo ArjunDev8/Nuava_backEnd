@@ -83,16 +83,19 @@ model Team {
   school      School          @relation(fields: [schoolID], references: [id])
   coach       Coach           @relation(fields: [coachID], references: [id])
   students    StudentOnTeam[]
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  fixtures1   Fixture[]       @relation("team1")
+  fixtures2   Fixture[]       @relation("team2")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime?       @updatedAt
 }
 
 model Fixture {
   id           Int    @id @default(autoincrement())
   location     String
   teamID1      Int
+  team1        Team   @relation("team1", fields: [teamID1], references: [id])
   teamID2      Int
+  team2        Team   @relation("team2", fields: [teamID2], references: [id])
   tournamentID Int
 
   isBye     Boolean  @default(false)

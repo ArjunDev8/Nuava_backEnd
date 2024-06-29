@@ -31,6 +31,7 @@ import {
   deleteTournament,
   editTournament,
   getAllTournaments,
+  getBracket,
   swapTeamsInFixture,
 } from "../services/tournament";
 
@@ -62,6 +63,39 @@ const TournamentResolvers: IResolvers = {
         return tournaments;
       } catch (err: any) {
         console.log("Error in getAllTournaments resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+    getBrackets: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        console.log("id", id, role);
+
+        let user = null;
+
+        if (role === UserEnum.COACH) {
+          user = await findCoachByID(id);
+        } else {
+          user = await findStudentByID(id);
+        }
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const { tournamentID } = input;
+
+        const tournament = await getBracket(tournamentID);
+
+        console.log(tournament, "tournament");
+
+        return tournament;
+      } catch (err: any) {
+        console.log("Error in getBracket resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

@@ -6,6 +6,7 @@ type Query {
   getAllTeams(filters: getAllTeamsFilter): [Team]
   getAllStudents: [Student]
   getAllAvailablePlayers(input: AvailablePlayersInput!): [Student]
+  getBrackets(input: GetBracketsInput!): [Bracket]
 }
 
 type Mutation {

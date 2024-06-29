@@ -352,17 +352,27 @@ export const createFixtures = async ({
     });
 
     if (allTeamsFromParticipatingSchool.length === 0) {
-      allTeamsFromParticipatingSchool = [
-        {
-          id: Math.random() * 1000 * schoolId.id,
-          name: `DummyTeam${schoolId}`,
+      // allTeamsFromParticipatingSchool = [
+      //   {
+      //     id: Math.random() * 1000 * schoolId.id,
+      //     name: `DummyTeam${schoolId}`,
+      //     schoolID: schoolId.id,
+      //     typeOfSport: "FOOTBALL",
+      //     coachID: coach.id,
+      //     createdAt: new Date(),
+      //     updatedAt: new Date(),
+      //   },
+      // ];
+
+      allTeamsFromParticipatingSchool = await transaction.team.create({
+        data: {
+          name: `DummyTeam${schoolId.id}`,
           schoolID: schoolId.id,
           typeOfSport: "FOOTBALL",
           coachID: coach.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         },
-      ];
+      });
+      allTeamsFromParticipatingSchool = [allTeamsFromParticipatingSchool];
     }
 
     participatingTeams.push(...allTeamsFromParticipatingSchool);
@@ -439,6 +449,12 @@ export const createFixtures = async ({
     // Calculate the end time of the match
     const endTime = new Date(currentTime.getTime() + matchDuration * 60000);
 
+    const getDummyTeam = await transaction.team.findFirst({
+      where: {
+        name: `DummyTeam`,
+      },
+    });
+
     await transaction.fixture.create({
       data: {
         teamID1: byeTeam.id,
@@ -488,6 +504,117 @@ export const getAllFixturesOfTournament = async (tournamentId: number) => {
     }
 
     return fixtures;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const getBracket = async (tournamentId: number) => {
+  try {
+    const tournament = await prisma.tournament.findFirst({
+      where: {
+        id: tournamentId,
+      },
+      include: {
+        fixtures: {
+          include: {
+            team1: true,
+            team2: true,
+          },
+        },
+      },
+    });
+    // {
+    //   node-app-1    |   id: 28,
+    //   node-app-1    |   name: 'UEFA CHAMPIONS LEAGUE 3',
+    //   node-app-1    |   location: 'Madrid',
+    //   node-app-1    |   startDate: 2024-06-20T00:00:00.000Z,
+    //   node-app-1    |   endDate: 2024-06-25T23:59:59.999Z,
+    //   node-app-1    |   typeOfSport: 'FOOTBALL',
+    //   node-app-1    |   organizingSchoolId: 1,
+    //   node-app-1    |   intervalBetweenMatches: 30,
+    //   node-app-1    |   matchDuration: 90,
+    //   node-app-1    |   organizerCoachId: 3,
+    //   node-app-1    |   createdAt: 2024-06-28T19:49:18.014Z,
+    //   node-app-1    |   updatedAt: 2024-06-28T19:49:18.014Z,
+    //   node-app-1    |   fixtures: [
+    //   node-app-1    |     {
+    //   node-app-1    |       id: 161,
+    //   node-app-1    |       location: 'TBD',
+    //   node-app-1    |       teamID1: 1641,
+    //   node-app-1    |       teamID2: 937,
+    //   node-app-1    |       tournamentID: 28,
+    //   node-app-1    |       isBye: false,
+    //   node-app-1    |       startDate: 2024-06-20T11:00:00.000Z,
+    //   node-app-1    |       endDate: 2024-06-20T12:30:00.000Z,
+    //   node-app-1    |       round: 1,
+    //   node-app-1    |       winnerID: null,
+    //   node-app-1    |       createdAt: 2024-06-28T19:49:18.014Z,
+    //   node-app-1    |       updatedAt: 2024-06-28T19:49:18.014Z
+    //   node-app-1    |     },
+    //   node-app-1    |     {
+    //   node-app-1    |       id: 160,
+    //   node-app-1    |       location: 'TBD',
+    //   node-app-1    |       teamID1: 1312,
+    //   node-app-1    |       teamID2: 2,
+    //   node-app-1    |       tournamentID: 28,
+    //   node-app-1    |       isBye: false,
+    //   node-app-1    |       startDate: 2024-06-20T09:00:00.000Z,
+    //   node-app-1    |       endDate: 2024-06-20T10:30:00.000Z,
+    //   node-app-1    |       round: 1,
+    //   node-app-1    |       winnerID: null,
+    //   node-app-1    |       createdAt: 2024-06-28T19:49:18.014Z,
+    //   node-app-1    |       updatedAt: 2024-06-28T19:53:18.176Z
+    //   node-app-1    |     },
+    //   node-app-1    |     {
+    //   node-app-1    |       id: 162,
+    //   node-app-1    |       location: 'TBD',
+    //   node-app-1    |       teamID1: 1512,
+    //   node-app-1    |       teamID2: 3,
+    //   node-app-1    |       tournamentID: 28,
+    //   node-app-1    |       isBye: false,
+    //   node-app-1    |       startDate: 2024-06-20T13:00:00.000Z,
+    //   node-app-1    |       endDate: 2024-06-20T14:30:00.000Z,
+    //   node-app-1    |       round: 1,
+    //   node-app-1    |       winnerID: null,
+    //   node-app-1    |       createdAt: 2024-06-28T19:49:18.014Z,
+    //   node-app-1    |       updatedAt: 2024-06-28T19:53:18.180Z
+    //   node-app-1    |     }
+    //   node-app-1    |   ]
+    //   node-app-1    | }
+
+    if (!tournament) {
+      throw new ApolloError("Tournament not found");
+    }
+
+    const brackets = tournament.fixtures.map((fixture) => {
+      // {
+      //   team1ID: fixture.teamID1,
+      //   team2ID: fixture.teamID2,
+      //   team1Name: team1,
+      //   team2Name: team2,
+      //   team1Score: 0, // TO BE CHANGED TO ACTUAL SCORE
+      //   team2Score: 0, // TO BE CHANGED TO ACTUAL SCORE
+      //   winner: fixture.winnerID,
+      //   startDate: fixture.startDate,
+      //   endDate: fixture.endDate,
+      // }
+      return {
+        id: fixture.id,
+        tournamentId: fixture.tournamentID,
+        team1Id: fixture.teamID1,
+        team2Id: fixture.teamID2,
+        team1Name: fixture.team1?.name,
+        team2Name: fixture.team2?.name,
+        team1Score: 0, // TO BE CHANGED TO ACTUAL SCORE
+        team2Score: 0, // TO BE CHANGED TO ACTUAL SCORE
+        winner: fixture.winnerID,
+        startDate: fixture.startDate,
+        endDate: fixture.endDate,
+      };
+    });
+
+    return brackets;
   } catch (err: any) {
     throw err;
   }
