@@ -117,19 +117,23 @@ model StatMetric {
 }
 
 model Tournament {
-  id                 Int                   @id @default(autoincrement())
-  name               String
-  location           String
-  startDate          DateTime
-  endDate            DateTime
-  typeOfSport        String
-  fixtures           Fixture[]
-  schools            ParticipatingSchool[]
-  organizingSchoolId Int
-  tournamentDays     TournamentDay[]
-  organizingSchool   School                @relation(fields: [organizingSchoolId], references: [id])
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime?             @updatedAt
+  id                     Int                   @id @default(autoincrement())
+  name                   String
+  location               String
+  startDate              DateTime
+  endDate                DateTime
+  typeOfSport            String
+  fixtures               Fixture[]
+  schools                ParticipatingSchool[]
+  organizingSchoolId     Int
+  tournamentDays         TournamentDay[]
+  intervalBetweenMatches Int
+  matchDuration          Int
+  organizerCoachId       Int
+
+  organizingSchool School    @relation(fields: [organizingSchoolId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime? @updatedAt
 }
 
 model TournamentDay {
@@ -138,7 +142,7 @@ model TournamentDay {
   startTime    DateTime
   endTime      DateTime
   tournamentId Int
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 }
 
 model Dispute {
@@ -224,7 +228,7 @@ model ParticipatingSchool {
   schoolId     Int
   tournamentId Int
   school       School     @relation(fields: [schoolId], references: [id])
-  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@id([schoolId, tournamentId])
 }

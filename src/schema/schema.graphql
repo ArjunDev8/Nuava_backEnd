@@ -23,6 +23,12 @@ type Mutation {
   resetPassword(input: ResetPasswordInput!): Result!
 
   createTournament(input: CreateTournamentInput!): CreateTournamentResponse!
+  editTournament(input: EditTournamentInput!): EditTournamentResponse!
+  deleteTournament(input: DeleteTournamentInput!): DeleteTournamentResponse!
+
+  swapTeams(input: SwapTeamsInput!): Result!
+  editFixture(input: EditFixtureInput!): Result!
+  deleteFixture(input: DeleteFixtureInput!): Result!
 
   createTeam(input: CreateTeamInput!): Result!
 }
