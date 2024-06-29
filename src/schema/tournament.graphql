@@ -81,3 +81,21 @@ type CreateTournamentResponse {
 enum typeOfSport {
   FOOTBALL
 }
+
+input SwapTeamsInput {
+  fixtureId1: Int!
+  fixtureId2: Int!
+  team1Id: Int!
+  team2Id: Int!
+}
+
+input DeleteFixtureInput {
+  fixtureId: Int!
+}
+
+input EditFixtureInput {
+  fixtureId: Int!
+  fixtureStartTime: String!
+  fixtureEndTime: String!
+  fixtureLocation: String!
+}

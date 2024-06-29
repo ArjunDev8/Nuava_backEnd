@@ -27,9 +27,11 @@ import { generateJWTToken, hashedPassword } from "../helper/utils";
 import { emailQueue, getEmailTemplate } from "../services/email";
 import {
   createTournament,
+  deleteFixture,
   deleteTournament,
   editTournament,
   getAllTournaments,
+  swapTeamsInFixture,
 } from "../services/tournament";
 
 const TournamentResolvers: IResolvers = {
@@ -142,6 +144,65 @@ const TournamentResolvers: IResolvers = {
         };
       } catch (err: any) {
         console.log("Error in deleteTournament resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    swapTeams: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const { fixtureId1, fixtureId2, team1Id, team2Id } = input;
+
+        // Swap teams
+        await swapTeamsInFixture({
+          fixtureId1,
+          fixtureId2,
+          team1Id,
+          team2Id,
+        });
+
+        return {
+          status: true,
+          message: "Teams swapped successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in swapTeams resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    deleteFixture: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const { fixtureId } = input;
+
+        // Delete fixture
+        await deleteFixture(fixtureId, coach);
+
+        return {
+          status: true,
+          message: "Fixture deleted successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in deleteFixture resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

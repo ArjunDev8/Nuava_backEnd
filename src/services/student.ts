@@ -157,11 +157,24 @@ export const createStudent = async (input: {
   name: string;
 }): Promise<Student> => {
   try {
-    const { email, password, grade, age, schoolID, name } = input;
+    const { email, password, grade, age, name } = input;
 
     const lcEmail = email.toLowerCase();
 
     const isEmailValid = isEmail(lcEmail);
+
+    const schoolID = await prisma.school.findFirst({
+      where: {
+        domain: lcEmail.split("@")[1],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!schoolID) {
+      throw new Error("Email domain doesnt match any school in our records");
+    }
 
     // TODO: VALIDATE THE EMAIL WITH THE REGISTERED SCHOOL DOMAINS
     if (!isEmailValid) {
@@ -177,7 +190,7 @@ export const createStudent = async (input: {
         password: hashPassKey,
         grade,
         age,
-        schoolID,
+        schoolID: schoolID.id,
         moderatorAccess: false,
         name: name,
       },
