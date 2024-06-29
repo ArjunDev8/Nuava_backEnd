@@ -99,3 +99,21 @@ input EditFixtureInput {
   fixtureEndTime: String!
   fixtureLocation: String!
 }
+
+input GetBracketsInput {
+  tournamentId: Int!
+}
+
+type Bracket {
+  id: Int!
+  tournamentId: Int!
+  team1Id: Int!
+  team2Id: Int!
+  team1Name: String!
+  team2Name: String!
+  team1Score: Int!
+  team2Score: Int!
+  winner: Int!
+  startDate: String!
+  endDate: String!
+}

@@ -502,6 +502,42 @@
           "maxLength": null
         },
         {
+          "name": "Team_Fixture_teamID1ToTeam",
+          "type": "Team",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "Fixture_teamID1ToTeam",
+          "relationFromFields": [
+            "teamID1"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Team_Fixture_teamID2ToTeam",
+          "type": "Team",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "Fixture_teamID2ToTeam",
+          "relationFromFields": [
+            "teamID2"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
           "name": "Tournament",
           "type": "Tournament",
           "isRequired": true,
@@ -1905,6 +1941,34 @@
             "id"
           ],
           "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Fixture_Fixture_teamID1ToTeam",
+          "type": "Fixture",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Fixture_teamID1ToTeam",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Fixture_Fixture_teamID2ToTeam",
+          "type": "Fixture",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "Fixture_teamID2ToTeam",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
           "isId": false,
           "isGenerated": false,
           "sequence": false,
