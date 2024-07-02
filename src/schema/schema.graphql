@@ -7,6 +7,7 @@ type Query {
   getAllStudents: [Student]
   getAllAvailablePlayers(input: AvailablePlayersInput!): [Student]
   getBrackets(input: GetBracketsInput!): [Bracket]
+  getAllEvents: [Event]
 }
 
 type Mutation {
@@ -32,6 +33,10 @@ type Mutation {
   deleteFixture(input: DeleteFixtureInput!): Result!
 
   createTeam(input: CreateTeamInput!): Result!
+
+  createEvent(input: CreateEventInput!): Result!
+  editEvent(input: EditEventInput!): Result!
+  deleteEvent(input: DeleteEventInput!): Result!
 }
 
 # type Subscription {

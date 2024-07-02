@@ -117,3 +117,30 @@ type Bracket {
   startDate: String!
   endDate: String!
 }
+
+input CreateEventInput {
+  title: String!
+  startDate: String!
+  endDate: String!
+  isAllDay: Boolean!
+}
+
+input EditEventInput {
+  eventId: Int!
+  title: String
+  startDate: String
+  endDate: String
+  isAllDay: Boolean
+}
+
+input DeleteEventInput {
+  eventId: Int!
+}
+
+type Event {
+  id: Int!
+  title: String!
+  startDate: String!
+  endDate: String!
+  isAllDay: Boolean!
+}

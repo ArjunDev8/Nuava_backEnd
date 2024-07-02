@@ -775,6 +775,133 @@ export const deleteTournament = async (tournamentId: number, coach: Coach) => {
   }
 };
 
+// input CreateEventInput {
+//   title: String!
+//   startDate: String!
+//   endDate: String!
+//   isAllDay: Boolean!
+// }
+
+//CREATE EVENT
+export const createEvent = async ({
+  title,
+  startDate,
+  endDate,
+  isAllDay,
+  schoolID,
+}: {
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  isAllDay: boolean;
+  schoolID: number;
+}) => {
+  try {
+    const event = await prisma.events.create({
+      data: {
+        title,
+        start: startDate,
+        end: endDate,
+        allDay: isAllDay,
+        schoolID,
+      },
+    });
+
+    return event;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const editEvent = async ({
+  eventId,
+  title,
+  startDate,
+  endDate,
+  isAllDay,
+  schoolID,
+}: {
+  eventId: number;
+  title?: string;
+  startDate?: Date;
+  endDate?: Date;
+  isAllDay?: boolean;
+  schoolID?: number;
+}) => {
+  try {
+    const data: any = {};
+    if (title !== undefined) data.title = title;
+    if (startDate !== undefined) data.start = startDate;
+    if (endDate !== undefined) data.end = endDate;
+    if (isAllDay !== undefined) data.allDay = isAllDay;
+    if (schoolID !== undefined) data.schoolID = schoolID;
+
+    const event = await prisma.events.update({
+      where: {
+        id: eventId,
+      },
+      data,
+    });
+
+    return event;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const deleteEvent = async (eventId: number) => {
+  try {
+    const event = await prisma.events.findFirst({
+      where: {
+        id: eventId,
+      },
+    });
+
+    if (!event) {
+      throw new ApolloError("Event not found");
+    }
+
+    await prisma.events.delete({
+      where: {
+        id: eventId,
+      },
+    });
+
+    return true;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const getAllEvents = async (schoolId: number) => {
+  try {
+    const events = await prisma.events.findMany({
+      where: {
+        schoolID: schoolId,
+      },
+    });
+
+    // title: String!
+    // startDate: String!
+    // endDate: String!
+    // isAllDay: Boolean!
+
+    const result = events.map((event) => {
+      return {
+        id: event.id,
+        title: event.title,
+        startDate: event.start,
+        endDate: event.end,
+        isAllDay: event.allDay,
+      };
+    });
+
+    return result;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
 export const getAllTournaments = async (schoolId: number) => {
   try {
     const tournaments = await prisma.participatingSchool.findMany({

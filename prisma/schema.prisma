@@ -54,6 +54,7 @@ model School {
   tryouts        Tryout[]
   participations ParticipatingSchool[]
   tournaments    Tournament[]
+  events         Events[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
@@ -234,4 +235,23 @@ model ParticipatingSchool {
   tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
 
   @@id([schoolId, tournamentId])
+}
+
+// {
+//   title: 'Sample Event',
+//   start: new Date(),
+//   end: new Date(),
+//   allDay: false,
+// },
+
+model Events {
+  id        Int       @id @default(autoincrement())
+  title     String
+  start     DateTime
+  end       DateTime
+  allDay    Boolean
+  schoolID  Int
+  school    School    @relation(fields: [schoolID], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 }

@@ -26,10 +26,14 @@ import { COACH_ROLE, OTP_PURPOSE_REGISTER } from "../constants";
 import { generateJWTToken, hashedPassword } from "../helper/utils";
 import { emailQueue, getEmailTemplate } from "../services/email";
 import {
+  createEvent,
   createTournament,
+  deleteEvent,
   deleteFixture,
   deleteTournament,
+  editEvent,
   editTournament,
+  getAllEvents,
   getAllTournaments,
   getBracket,
   swapTeamsInFixture,
@@ -96,6 +100,35 @@ const TournamentResolvers: IResolvers = {
         return tournament;
       } catch (err: any) {
         console.log("Error in getBracket resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+    getAllEvents: async (_, __, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        console.log("id", id, role);
+
+        let user = null;
+
+        if (role === UserEnum.COACH) {
+          user = await findCoachByID(id);
+        } else {
+          user = await findStudentByID(id);
+        }
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const events = await getAllEvents(user.schoolID);
+
+        return events;
+      } catch (err: any) {
+        console.log("Error in getAllEvents resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },
@@ -237,6 +270,87 @@ const TournamentResolvers: IResolvers = {
         };
       } catch (err: any) {
         console.log("Error in deleteFixture resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    createEvent: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const event = await createEvent({
+          ...input,
+          schoolID: coach.schoolID,
+        });
+
+        return {
+          status: true,
+          message: "Event created successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in createTournament resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    editEvent: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const event = await editEvent({
+          ...input,
+          schoolID: coach.schoolID,
+        });
+
+        return {
+          status: true,
+          message: "Event updated successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in editEvent resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    deleteEvent: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const { eventId } = input;
+
+        // Delete fixture
+        await deleteEvent(eventId);
+
+        return {
+          status: true,
+          message: "Event deleted successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in deleteEvent resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },
