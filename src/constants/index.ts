@@ -25,3 +25,7 @@ export const playerLimits = {
 };
 
 export const BYESOPPONENT = -999;
+
+export const NORMAL_EVENT = "Normal Event";
+export const INTER_HOUSE_EVENT = "Inter House Event";
+export const FIXURE_EVENT = "Fixture Event";

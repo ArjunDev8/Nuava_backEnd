@@ -35,8 +35,8 @@ model Student {
 model StudentOnTeam {
   studentId Int
   teamId    Int
-  student   Student @relation(fields: [studentId], references: [id])
-  team      Team    @relation(fields: [teamId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@id([studentId, teamId])
 }
@@ -245,13 +245,16 @@ model ParticipatingSchool {
 // },
 
 model Events {
-  id        Int       @id @default(autoincrement())
-  title     String
-  start     DateTime
-  end       DateTime
-  allDay    Boolean
-  schoolID  Int
-  school    School    @relation(fields: [schoolID], references: [id])
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  id                Int       @id @default(autoincrement())
+  title             String
+  start             DateTime
+  end               DateTime
+  allDay            Boolean
+  isInterHouseEvent Boolean
+  schoolID          Int
+  details           Json
+  typeOfEvent       String
+  school            School    @relation(fields: [schoolID], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime? @updatedAt
 }

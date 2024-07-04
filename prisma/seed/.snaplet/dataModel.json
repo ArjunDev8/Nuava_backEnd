@@ -446,6 +446,48 @@
           "maxLength": null
         },
         {
+          "id": "public.Events.details",
+          "name": "details",
+          "columnName": "details",
+          "type": "jsonb",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
+          "id": "public.Events.isInterHouseEvent",
+          "name": "isInterHouseEvent",
+          "columnName": "isInterHouseEvent",
+          "type": "bool",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
+          "id": "public.Events.typeOfEvent",
+          "name": "typeOfEvent",
+          "columnName": "typeOfEvent",
+          "type": "text",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
           "name": "School",
           "type": "School",
           "isRequired": true,

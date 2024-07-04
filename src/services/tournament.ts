@@ -2,7 +2,12 @@ import { ApolloError } from "apollo-server-errors";
 import { prisma } from "../db";
 import { Coach, School, Tournament, TournamentDay } from "@prisma/client";
 import { typesOfSport } from "./team";
-import { BYESOPPONENT } from "../constants";
+import {
+  BYESOPPONENT,
+  FIXURE_EVENT,
+  INTER_HOUSE_EVENT,
+  NORMAL_EVENT,
+} from "../constants";
 import { areTournamentDaysValid } from "../helper/utils";
 
 interface CreateTournamentInput {
@@ -432,6 +437,26 @@ export const createFixtures = async ({
         },
       });
 
+      //CREATE A ENTRY IN THE EVENTS TABLE
+      const event = await transaction.events.create({
+        data: {
+          title: `${participatingTeams[i].name} vs ${
+            participatingTeams[i + 1].name
+          }`,
+          start: currentTime,
+          end: endTime,
+          allDay: false,
+          schoolID: coach.schoolID,
+          typeOfEvent: FIXURE_EVENT,
+          details: {
+            description: `Match between ${participatingTeams[i].name} and ${
+              participatingTeams[i + 1].name
+            }`,
+          },
+          isInterHouseEvent: false,
+        },
+      });
+
       // Update the current time for the next match
       currentTime = new Date(
         endTime.getTime() + intervalBetweenMatches * 60000
@@ -789,14 +814,37 @@ export const createEvent = async ({
   endDate,
   isAllDay,
   schoolID,
+  description,
+  isInterHouseEvent,
+  house1Name,
+  house2Name,
+  typeOfSport,
 }: {
   title: string;
   startDate: Date;
   endDate: Date;
   isAllDay: boolean;
   schoolID: number;
+  description: string;
+  isInterHouseEvent: boolean;
+  house1Name?: string;
+  house2Name?: string;
+  typeOfSport?: string;
 }) => {
   try {
+    let additionalData = {};
+    if (isInterHouseEvent && (!house1Name || !house2Name)) {
+      throw new ApolloError("House names are required for Inter House Event");
+    }
+
+    if (isInterHouseEvent) {
+      additionalData = {
+        house1Name: house1Name,
+        house2Name: house2Name,
+        typeOfSport: typeOfSport,
+      };
+    }
+
     const event = await prisma.events.create({
       data: {
         title,
@@ -804,6 +852,15 @@ export const createEvent = async ({
         end: endDate,
         allDay: isAllDay,
         schoolID,
+        typeOfEvent: isInterHouseEvent ? INTER_HOUSE_EVENT : NORMAL_EVENT,
+        // details: {
+        //   description: description,
+        // } as any,
+        details: {
+          description: description,
+          ...additionalData,
+        },
+        isInterHouseEvent: isInterHouseEvent,
       },
     });
 
@@ -820,6 +877,11 @@ export const editEvent = async ({
   endDate,
   isAllDay,
   schoolID,
+  description,
+  house1Name,
+  house2Name,
+  typeOfSport,
+  isInterHouseEvent,
 }: {
   eventId: number;
   title?: string;
@@ -827,6 +889,11 @@ export const editEvent = async ({
   endDate?: Date;
   isAllDay?: boolean;
   schoolID?: number;
+  description?: string;
+  house1Name?: string;
+  house2Name?: string;
+  typeOfSport?: string;
+  isInterHouseEvent: boolean;
 }) => {
   try {
     const data: any = {};
@@ -835,6 +902,13 @@ export const editEvent = async ({
     if (endDate !== undefined) data.end = endDate;
     if (isAllDay !== undefined) data.allDay = isAllDay;
     if (schoolID !== undefined) data.schoolID = schoolID;
+    if (description !== undefined) data.details = { description };
+
+    if (isInterHouseEvent) {
+      if (house1Name !== undefined) data.details = { house1Name };
+      if (house2Name !== undefined) data.details = { house2Name };
+      if (typeOfSport !== undefined) data.details = { typeOfSport };
+    }
 
     const event = await prisma.events.update({
       where: {

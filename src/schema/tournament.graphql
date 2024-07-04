@@ -123,6 +123,7 @@ input CreateEventInput {
   startDate: String!
   endDate: String!
   isAllDay: Boolean!
+  description: String!
 }
 
 input EditEventInput {
@@ -131,6 +132,7 @@ input EditEventInput {
   startDate: String
   endDate: String
   isAllDay: Boolean
+  desciprtion: String
 }
 
 input DeleteEventInput {
@@ -143,4 +145,27 @@ type Event {
   startDate: String!
   endDate: String!
   isAllDay: Boolean!
+}
+
+input CreateInterHouseEventInput {
+  title: String!
+  startDate: String!
+  endDate: String!
+  isAllDay: Boolean!
+  description: String
+  house1Name: String!
+  house2Name: String!
+  typeOfSport: String!
+}
+
+input EditInterHouseEventInput {
+  eventId: Int!
+  title: String
+  startDate: String
+  endDate: String
+  isAllDay: Boolean
+  description: String
+  house1Name: String
+  house2Name: String
+  typeOfSport: String
 }

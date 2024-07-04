@@ -73,6 +73,8 @@ const TournamentResolvers: IResolvers = {
         const { schoolID } = coach;
         const { typeOfSport } = input;
 
+        console.log("THIS IS CALLED", schoolID, typeOfSport);
+
         // Assuming getAllAvailablePlayers is a service function that returns all available players
         const players = await getAllAvailablePlayers({
           schoolID,

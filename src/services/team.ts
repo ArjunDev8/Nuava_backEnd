@@ -66,8 +66,15 @@ export const getAllAvailablePlayers = async ({
       },
     });
 
-    if (!allTeamsOfSchool.length) {
-      return [];
+    // if a school doesnt have any teams, return all students
+    if (allTeamsOfSchool.length === 0) {
+      const allStudents = await prisma.student.findMany({
+        where: {
+          schoolID,
+        },
+      });
+
+      return allStudents;
     }
 
     const teamIds = allTeamsOfSchool.map((team) => team.id);
@@ -141,6 +148,16 @@ export const createTeam = async (input: createTeamInput, coachId: number) => {
     if (players.length > playerLimits[typeOfSport].max) {
       throw new ApolloError("Specify less than 10 players to create a team");
     }
+
+    //CHECK IF ANOTHER SCHOOL STUDENT IS ADDED TO THE TEAM
+    const students = await prisma.student.findMany({
+      where: {
+        id: {
+          in: players,
+        },
+      },
+    });
+
     const result = await prisma.$transaction(async (prisma) => {
       const coach = await prisma.coach.findFirst({
         where: {
@@ -150,6 +167,16 @@ export const createTeam = async (input: createTeamInput, coachId: number) => {
 
       if (!coach) {
         throw new ApolloError("Coach not found");
+      }
+
+      const isAnotherSchoolStudent = students.some(
+        (student) => student.schoolID !== coach.schoolID
+      );
+
+      if (isAnotherSchoolStudent) {
+        throw new ApolloError(
+          "Another school student cannot be added to the team"
+        );
       }
 
       const team = await prisma.team.create({

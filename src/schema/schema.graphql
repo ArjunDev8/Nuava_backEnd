@@ -37,6 +37,9 @@ type Mutation {
   createEvent(input: CreateEventInput!): Result!
   editEvent(input: EditEventInput!): Result!
   deleteEvent(input: DeleteEventInput!): Result!
+
+  createInterHouseEvent(input: CreateInterHouseEventInput!): Result!
+  editInterHouseEvent(input: EditInterHouseEventInput!): Result!
 }
 
 # type Subscription {

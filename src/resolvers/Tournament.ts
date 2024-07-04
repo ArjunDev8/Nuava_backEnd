@@ -289,6 +289,35 @@ const TournamentResolvers: IResolvers = {
         const event = await createEvent({
           ...input,
           schoolID: coach.schoolID,
+          isInterHouseEvent: false,
+        });
+
+        return {
+          status: true,
+          message: "Event created successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in createTournament resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    createInterHouseEvent: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const event = await createEvent({
+          ...input,
+          schoolID: coach.schoolID,
+          isInterHouseEvent: true,
         });
 
         return {
@@ -316,6 +345,35 @@ const TournamentResolvers: IResolvers = {
         const event = await editEvent({
           ...input,
           schoolID: coach.schoolID,
+          isInterHouseEvent: false,
+        });
+
+        return {
+          status: true,
+          message: "Event updated successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in editEvent resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    editInterHouseEvent: async (_, { input }, { auth }) => {
+      try {
+        const { id } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const event = await editEvent({
+          ...input,
+          schoolID: coach.schoolID,
+          isInterHouseEvent: true,
         });
 
         return {
