@@ -126,7 +126,7 @@ const TournamentResolvers: IResolvers = {
 
         // Assuming deleteTeam is a service function that deletes a team
         // and returns a boolean value
-        const isDeleted = await deleteTeam(input, id);
+        const isDeleted = await deleteTeam(input.teamId, id);
 
         return {
           status: isDeleted,
