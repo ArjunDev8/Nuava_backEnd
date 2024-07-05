@@ -386,7 +386,7 @@ const TournamentResolvers: IResolvers = {
       }
     },
 
-    deleteEvent: async (_, { input }, { auth }) => {
+    deleteAnyEvent: async (_, { input }, { auth }) => {
       try {
         const { id } = verifyJWTToken(
           auth,
@@ -400,7 +400,6 @@ const TournamentResolvers: IResolvers = {
 
         const { eventId } = input;
 
-        // Delete fixture
         await deleteEvent(eventId);
 
         return {

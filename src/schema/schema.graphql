@@ -33,10 +33,11 @@ type Mutation {
   deleteFixture(input: DeleteFixtureInput!): Result!
 
   createTeam(input: CreateTeamInput!): Result!
+  deleteTeam(input: DeleteTeamInput!): Result!
 
   createEvent(input: CreateEventInput!): Result!
   editEvent(input: EditEventInput!): Result!
-  deleteEvent(input: DeleteEventInput!): Result!
+  deleteAnyEvent(input: DeleteEventInput!): Result!
 
   createInterHouseEvent(input: CreateInterHouseEventInput!): Result!
   editInterHouseEvent(input: EditInterHouseEventInput!): Result!

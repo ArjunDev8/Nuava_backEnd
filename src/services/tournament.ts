@@ -426,7 +426,7 @@ export const createFixtures = async ({
       // Calculate the end time of the match
       const endTime = new Date(currentTime.getTime() + matchDuration * 60000);
 
-      await transaction.fixture.create({
+      const fixture = await transaction.fixture.create({
         data: {
           teamID1: participatingTeams[i].id,
           teamID2: participatingTeams[i + 1].id,
@@ -452,6 +452,7 @@ export const createFixtures = async ({
             description: `Match between ${participatingTeams[i].name} and ${
               participatingTeams[i + 1].name
             }`,
+            fixtureID: fixture.id,
           },
           isInterHouseEvent: false,
         },
@@ -746,7 +747,7 @@ export const deleteFixture = async (fixtureId: number, coach: Coach) => {
     }
 
     if (coach.id !== tournament.organizerCoachId) {
-      throw new ApolloError("Coach not found");
+      throw new ApolloError("You are not authorized to delete this fixture");
     }
     const fixture = await prisma.fixture.findFirst({
       where: {
@@ -758,11 +759,28 @@ export const deleteFixture = async (fixtureId: number, coach: Coach) => {
       throw new ApolloError("Fixture not found");
     }
 
-    await prisma.fixture.delete({
-      where: {
-        id: fixtureId,
-      },
-    });
+    const events = await prisma.events.findMany();
+
+    const eventsToDelete = events.filter(
+      (event: any) => event.details.fixtureID === fixtureId
+    );
+
+    const deleteEvents = eventsToDelete.map((event) =>
+      prisma.events.delete({
+        where: {
+          id: event.id,
+        },
+      })
+    );
+
+    await prisma.$transaction([
+      prisma.fixture.delete({
+        where: {
+          id: fixtureId,
+        },
+      }),
+      ...deleteEvents,
+    ]);
 
     return fixture;
   } catch (err: any) {
@@ -777,6 +795,9 @@ export const deleteTournament = async (tournamentId: number, coach: Coach) => {
       where: {
         id: tournamentId,
       },
+      include: {
+        fixtures: true,
+      },
     });
 
     if (!tournament) {
@@ -788,11 +809,31 @@ export const deleteTournament = async (tournamentId: number, coach: Coach) => {
       throw new ApolloError("You are not authorized to delete this tournament");
     }
 
-    await prisma.tournament.delete({
-      where: {
-        id: tournamentId,
-      },
-    });
+    const fixtureIDs = tournament.fixtures.map((fixture) => fixture.id);
+
+    const events = await prisma.events.findMany();
+
+    const eventsToDelete = events.filter((event: any) =>
+      fixtureIDs.includes(event.details.fixtureID)
+    );
+
+    const deleteEvents = eventsToDelete.map((event) =>
+      prisma.events.delete({
+        where: {
+          id: event.id,
+        },
+      })
+    );
+
+    await prisma.$transaction([
+      prisma.tournament.delete({
+        where: {
+          id: tournamentId,
+        },
+      }),
+
+      ...deleteEvents,
+    ]);
 
     return tournament;
   } catch (err: any) {
@@ -869,7 +910,6 @@ export const createEvent = async ({
     throw err;
   }
 };
-
 export const editEvent = async ({
   eventId,
   title,
@@ -896,7 +936,22 @@ export const editEvent = async ({
   isInterHouseEvent: boolean;
 }) => {
   try {
+    const existingEvent = await prisma.events.findUnique({
+      where: {
+        id: eventId,
+      },
+    });
+
+    if (!existingEvent) {
+      throw new Error("Event not found");
+    }
+
+    if (existingEvent.typeOfEvent === FIXURE_EVENT) {
+      throw new Error("Cannot edit fixture events");
+    }
+
     const data: any = {};
+
     if (title !== undefined) data.title = title;
     if (startDate !== undefined) data.start = startDate;
     if (endDate !== undefined) data.end = endDate;
@@ -922,7 +977,6 @@ export const editEvent = async ({
     throw err;
   }
 };
-
 export const deleteEvent = async (eventId: number) => {
   try {
     const event = await prisma.events.findFirst({
@@ -933,6 +987,12 @@ export const deleteEvent = async (eventId: number) => {
 
     if (!event) {
       throw new ApolloError("Event not found");
+    }
+
+    if (event.typeOfEvent === FIXURE_EVENT) {
+      throw new ApolloError(
+        "Cannot delete fixture events,try deleting fixture from the fixtures tab"
+      );
     }
 
     await prisma.events.delete({
@@ -967,6 +1027,8 @@ export const getAllEvents = async (schoolId: number) => {
         startDate: event.start,
         endDate: event.end,
         isAllDay: event.allDay,
+        details: JSON.stringify(event.details),
+        typeOfEvent: event.typeOfEvent,
       };
     });
 

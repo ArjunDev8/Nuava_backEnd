@@ -145,6 +145,8 @@ type Event {
   startDate: String!
   endDate: String!
   isAllDay: Boolean!
+  details: String!
+  typeOfEvent: String!
 }
 
 input CreateInterHouseEventInput {
