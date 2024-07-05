@@ -18,3 +18,14 @@ type Team {
   typeOfSport: typeOfSport
   players: [Student]
 }
+
+input DeleteTeamInput {
+  teamId: Int!
+}
+
+input EditTeamInput {
+  teamId: Int!
+  name: String
+  typeOfSport: typeOfSport
+  players: [Int]
+}

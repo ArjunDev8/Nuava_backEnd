@@ -34,6 +34,7 @@ type Mutation {
 
   createTeam(input: CreateTeamInput!): Result!
   deleteTeam(input: DeleteTeamInput!): Result!
+  editTeam(input: EditTeamInput!): Result!
 
   createEvent(input: CreateEventInput!): Result!
   editEvent(input: EditEventInput!): Result!

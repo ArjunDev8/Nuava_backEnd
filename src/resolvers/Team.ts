@@ -3,6 +3,8 @@ import { ApolloError } from "apollo-server-express";
 import { verifyJWTToken } from "../services/student";
 import {
   createTeam,
+  deleteTeam,
+  editTeam,
   getAllAvailablePlayers,
   getAllTeams,
   getTeamWithPlayers,
@@ -106,6 +108,52 @@ const TournamentResolvers: IResolvers = {
         return {
           status: true,
           message: "Team created successfully",
+        };
+      } catch (err: any) {
+        throw new ApolloError(err.message);
+      }
+    },
+    deleteTeam: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        if (role !== COACH_ROLE) {
+          throw new Error("Unauthorized to delete a team");
+        }
+
+        // Assuming deleteTeam is a service function that deletes a team
+        // and returns a boolean value
+        const isDeleted = await deleteTeam(input, id);
+
+        return {
+          status: isDeleted,
+          message: isDeleted ? "Team deleted successfully" : "Team not found",
+        };
+      } catch (err: any) {
+        throw new ApolloError(err.message);
+      }
+    },
+    editTeam: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        if (role !== COACH_ROLE) {
+          throw new Error("Unauthorized to edit a team");
+        }
+
+        // Assuming editTeam is a service function that edits a team
+        const result = await editTeam(input.teamId, input);
+
+        return {
+          status: true,
+          message: "Team edited successfully",
+          data: result,
         };
       } catch (err: any) {
         throw new ApolloError(err.message);

@@ -221,7 +221,7 @@ export const createTeam = async (input: createTeamInput, coachId: number) => {
   }
 };
 
-export const deleteTeam = async (teamId: number) => {
+export const deleteTeam = async (teamId: number, coachID: number) => {
   try {
     const team = await prisma.team.findFirst({
       where: {
@@ -231,6 +231,9 @@ export const deleteTeam = async (teamId: number) => {
 
     if (!team) {
       throw new ApolloError("Team not found");
+    }
+    if (team.coachID !== coachID) {
+      throw new ApolloError("Unauthorized to delete this team");
     }
 
     await prisma.team.delete({
