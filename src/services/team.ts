@@ -373,8 +373,12 @@ export const editTeam = async (
           where: {
             teamId: teamId,
           },
+          orderBy: {
+            version: "desc",
+          },
         });
 
+        console.log(teamId, teamVersionOld, "teamId, teamVersionOld");
         // Create a new team version
         const teamVersion = await prisma.teamVersion.create({
           data: {
