@@ -148,7 +148,7 @@ const TournamentResolvers: IResolvers = {
         }
 
         // Assuming editTeam is a service function that edits a team
-        const result = await editTeam(input.teamId, input);
+        const result = await editTeam(input.teamId, input, id);
 
         return {
           status: true,

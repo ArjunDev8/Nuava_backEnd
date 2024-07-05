@@ -248,7 +248,11 @@ export const deleteTeam = async (teamId: number, coachID: number) => {
   }
 };
 
-export const editTeam = async (teamId: number, input: createTeamInput) => {
+export const editTeam = async (
+  teamId: number,
+  input: createTeamInput,
+  coachID: number
+) => {
   try {
     const team = await prisma.team.findFirst({
       where: {
@@ -260,9 +264,35 @@ export const editTeam = async (teamId: number, input: createTeamInput) => {
       throw new ApolloError("Team not found");
     }
 
+    const students = await prisma.student.findMany({
+      where: {
+        id: {
+          in: input.players,
+        },
+      },
+    });
     const result = await prisma.$transaction(async (prisma) => {
       const { players, typeOfSport } = input;
       const hasDuplicatePlayers = new Set(players).size !== players.length;
+      const coach = await prisma.coach.findFirst({
+        where: {
+          id: coachID,
+        },
+      });
+
+      if (!coach) {
+        throw new ApolloError("Coach not found");
+      }
+
+      const isAnotherSchoolStudent = students.some(
+        (student) => student.schoolID !== coach.schoolID
+      );
+
+      if (isAnotherSchoolStudent) {
+        throw new ApolloError(
+          "Another school student cannot be added to the team"
+        );
+      }
 
       //VALIDATE THE MIN AND MAX NUMBER OF PLAYERS IN A TEAM
       if (players.length < playerLimits[typeOfSport].min) {
@@ -303,6 +333,16 @@ export const editTeam = async (teamId: number, input: createTeamInput) => {
           data: {
             studentId: playerId,
             teamId: teamId,
+          },
+        });
+
+        await prisma.team.update({
+          where: {
+            id: teamId,
+          },
+          data: {
+            name: input.name,
+            typeOfSport: input.typeOfSport,
           },
         });
       }
