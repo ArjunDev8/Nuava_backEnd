@@ -331,6 +331,57 @@ export const createFixtures = async ({
     });
   }
 
+  // for (const schoolId of participatingSchools) {
+  //   const existingRecord = await transaction.participatingSchool.findUnique({
+  //     where: {
+  //       schoolId_tournamentId: {
+  //         schoolId: schoolId.id,
+  //         tournamentId: tournament.id,
+  //       },
+  //     },
+  //   });
+
+  //   if (!existingRecord) {
+  //     await transaction.participatingSchool.create({
+  //       data: {
+  //         schoolId: schoolId.id,
+  //         tournamentId: tournament.id,
+  //       },
+  //     });
+  //   }
+
+  //   let allTeamsFromParticipatingSchool = await transaction.team.findMany({
+  //     where: {
+  //       schoolID: schoolId.id,
+  //     },
+  //   });
+
+  //   if (allTeamsFromParticipatingSchool.length === 0) {
+  //     // allTeamsFromParticipatingSchool = [
+  //     //   {
+  //     //     id: Math.random() * 1000 * schoolId.id,
+  //     //     name: `DummyTeam${schoolId}`,
+  //     //     schoolID: schoolId.id,
+  //     //     typeOfSport: "FOOTBALL",
+  //     //     coachID: coach.id,
+  //     //     createdAt: new Date(),
+  //     //     updatedAt: new Date(),
+  //     //   },
+  //     // ];
+
+  //     allTeamsFromParticipatingSchool = await transaction.team.create({
+  //       data: {
+  //         name: `DummyTeam${schoolId.id}`,
+  //         schoolID: schoolId.id,
+  //         typeOfSport: "FOOTBALL",
+  //         coachID: coach.id,
+  //       },
+  //     });
+  //     allTeamsFromParticipatingSchool = [allTeamsFromParticipatingSchool];
+  //   }
+
+  //   participatingTeams.push(...allTeamsFromParticipatingSchool);
+  // }
   for (const schoolId of participatingSchools) {
     const existingRecord = await transaction.participatingSchool.findUnique({
       where: {
@@ -356,20 +407,36 @@ export const createFixtures = async ({
       },
     });
 
-    if (allTeamsFromParticipatingSchool.length === 0) {
-      // allTeamsFromParticipatingSchool = [
-      //   {
-      //     id: Math.random() * 1000 * schoolId.id,
-      //     name: `DummyTeam${schoolId}`,
-      //     schoolID: schoolId.id,
-      //     typeOfSport: "FOOTBALL",
-      //     coachID: coach.id,
-      //     createdAt: new Date(),
-      //     updatedAt: new Date(),
-      //   },
-      // ];
+    for (const team of allTeamsFromParticipatingSchool) {
+      // Get the latest version of the team
+      const latestTeamVersion = await transaction.teamVersion.findFirst({
+        where: { teamId: team.id },
+        orderBy: { createdAt: "desc" },
+      });
 
-      allTeamsFromParticipatingSchool = await transaction.team.create({
+      if (!latestTeamVersion) {
+        throw new Error(`latest Team has no versions, ${schoolId.id}`);
+      }
+
+      console.log(latestTeamVersion, "latestTeamVersion");
+
+      // Create a teamParticipation record linked to the latest team version
+
+      const teamParticipationRecord =
+        await transaction.teamParticipation.create({
+          data: {
+            teamId: latestTeamVersion.teamId, // Replace this with the actual team ID
+            tournamentId: tournament.id, // Replace this with the actual tournament ID
+          },
+        });
+
+      if (teamParticipationRecord) {
+        participatingTeams.push(teamParticipationRecord);
+      }
+    }
+
+    if (allTeamsFromParticipatingSchool.length === 0) {
+      const dummyTeam = await transaction.team.create({
         data: {
           name: `DummyTeam${schoolId.id}`,
           schoolID: schoolId.id,
@@ -377,10 +444,37 @@ export const createFixtures = async ({
           coachID: coach.id,
         },
       });
-      allTeamsFromParticipatingSchool = [allTeamsFromParticipatingSchool];
-    }
 
-    participatingTeams.push(...allTeamsFromParticipatingSchool);
+      const dummyTeamVersion = await transaction.teamVersion.create({
+        data: {
+          teamId: dummyTeam.id,
+          version: 1,
+          players: [],
+        },
+      });
+
+      if (dummyTeam) {
+        // Get the latest version of the dummy team
+        const latestDummyTeamVersion = await transaction.teamVersion.findFirst({
+          where: { teamId: dummyTeam.id },
+          orderBy: { createdAt: "desc" },
+        });
+
+        if (!latestDummyTeamVersion) {
+          throw new Error("Dummy team has no versions");
+        }
+
+        // Create a teamParticipation record linked to the latest dummy team version
+        const dummyParticipation = await transaction.teamParticipation.create({
+          data: {
+            teamId: latestDummyTeamVersion.teamId, // Replace this with the actual team ID
+            tournamentId: tournament.id, // Replace this with the actual tournament ID
+          },
+        });
+
+        participatingTeams.push(dummyParticipation);
+      }
+    }
   }
 
   for (let i = participatingTeams.length - 1; i > 0; i--) {
@@ -421,15 +515,24 @@ export const createFixtures = async ({
   let currentDay = 0;
   let currentTime = new Date(tournamentDays[currentDay].startTime);
 
+  console.log("CURRENT TIME", participatingTeams);
+
   for (let i = 0; i < participatingTeams.length; i += 2) {
     if (i + 1 < participatingTeams.length) {
       // Calculate the end time of the match
       const endTime = new Date(currentTime.getTime() + matchDuration * 60000);
 
+      console.log(
+        participatingTeams[i].id,
+        participatingTeams[i + 1].id,
+
+        "FIXTURE DATA"
+      );
+
       const fixture = await transaction.fixture.create({
         data: {
-          teamID1: participatingTeams[i].id,
-          teamID2: participatingTeams[i + 1].id,
+          teamParticipationId1: participatingTeams[i].id,
+          teamParticipationId2: participatingTeams[i + 1].id,
           tournamentID: tournament.id,
           startDate: currentTime,
           endDate: endTime,
@@ -544,8 +647,16 @@ export const getBracket = async (tournamentId: number) => {
       include: {
         fixtures: {
           include: {
-            team1: true,
-            team2: true,
+            teamParticipation1: {
+              include: {
+                team: true,
+              },
+            },
+            teamParticipation2: {
+              include: {
+                team: true,
+              },
+            },
           },
         },
       },
@@ -628,10 +739,10 @@ export const getBracket = async (tournamentId: number) => {
       return {
         id: fixture.id,
         tournamentId: fixture.tournamentID,
-        team1Id: fixture.teamID1,
-        team2Id: fixture.teamID2,
-        team1Name: fixture.team1?.name,
-        team2Name: fixture.team2?.name,
+        team1Id: fixture.teamParticipation1.teamId,
+        team2Id: fixture.teamParticipation2.teamId,
+        team1Name: fixture.teamParticipation1.team.name,
+        team2Name: fixture.teamParticipation2.team.name,
         team1Score: 0, // TO BE CHANGED TO ACTUAL SCORE
         team2Score: 0, // TO BE CHANGED TO ACTUAL SCORE
         winner: fixture.winnerID,
@@ -675,8 +786,14 @@ export const swapTeamsInFixture = async ({
       throw new ApolloError("Fixtures not found in the tournament");
     }
 
-    const fixture1Teams = [fixture1?.teamID1, fixture1?.teamID2];
-    const fixture2Teams = [fixture2?.teamID1, fixture2?.teamID2];
+    const fixture1Teams = [
+      fixture1?.teamParticipationId1,
+      fixture1?.teamParticipationId2,
+    ];
+    const fixture2Teams = [
+      fixture2?.teamParticipationId1,
+      fixture2?.teamParticipationId2,
+    ];
 
     const swapFixture1Data = fixture1Teams.map((teamId) => {
       if (teamId === team1Id) {
@@ -708,8 +825,8 @@ export const swapTeamsInFixture = async ({
       // },
 
       data: {
-        teamID1: swapFixture1Data[0],
-        teamID2: swapFixture1Data[1],
+        teamParticipationId1: swapFixture1Data[0],
+        teamParticipationId2: swapFixture1Data[1],
       },
     });
 
@@ -718,8 +835,8 @@ export const swapTeamsInFixture = async ({
         id: fixtureId2,
       },
       data: {
-        teamID1: swapFixture2Data[0],
-        teamID2: swapFixture2Data[1],
+        teamParticipationId1: swapFixture2Data[0],
+        teamParticipationId2: swapFixture2Data[1],
       },
     });
 

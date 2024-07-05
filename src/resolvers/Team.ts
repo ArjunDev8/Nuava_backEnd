@@ -129,8 +129,8 @@ const TournamentResolvers: IResolvers = {
         const isDeleted = await deleteTeam(input.teamId, id);
 
         return {
-          status: isDeleted,
-          message: isDeleted ? "Team deleted successfully" : "Team not found",
+          status: true,
+          message: "Team deleted successfully",
         };
       } catch (err: any) {
         throw new ApolloError(err.message);

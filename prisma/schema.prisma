@@ -75,29 +75,43 @@ model Coach {
   updatedAt DateTime? @updatedAt
 }
 
+// model Team {
+//   id          Int             @id @default(autoincrement())
+//   name        String
+//   schoolID    Int
+//   coachID     Int
+//   typeOfSport String
+//   school      School          @relation(fields: [schoolID], references: [id])
+//   coach       Coach           @relation(fields: [coachID], references: [id])
+//   students    StudentOnTeam[]
+//   fixtures1   Fixture[]       @relation("team1")
+//   fixtures2   Fixture[]       @relation("team2")
+//   createdAt   DateTime        @default(now())
+//   updatedAt   DateTime?       @updatedAt
+// }
 model Team {
-  id          Int             @id @default(autoincrement())
-  name        String
-  schoolID    Int
-  coachID     Int
-  typeOfSport String
-  school      School          @relation(fields: [schoolID], references: [id])
-  coach       Coach           @relation(fields: [coachID], references: [id])
-  students    StudentOnTeam[]
-  fixtures1   Fixture[]       @relation("team1")
-  fixtures2   Fixture[]       @relation("team2")
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime?       @updatedAt
+  id             Int                 @id @default(autoincrement())
+  name           String
+  schoolID       Int
+  coachID        Int
+  typeOfSport    String
+  school         School              @relation(fields: [schoolID], references: [id])
+  coach          Coach               @relation(fields: [coachID], references: [id])
+  students       StudentOnTeam[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime?           @updatedAt
+  participations TeamParticipation[]
+  Versions       TeamVersion[]
 }
 
 model Fixture {
-  id           Int    @id @default(autoincrement())
-  location     String
-  teamID1      Int
-  team1        Team   @relation("team1", fields: [teamID1], references: [id])
-  teamID2      Int
-  team2        Team   @relation("team2", fields: [teamID2], references: [id])
-  tournamentID Int
+  id                   Int               @id @default(autoincrement())
+  location             String
+  teamParticipationId1 Int
+  teamParticipation1   TeamParticipation @relation("TeamParticipationToFixture1", fields: [teamParticipationId1], references: [id])
+  teamParticipationId2 Int
+  teamParticipation2   TeamParticipation @relation("TeamParticipationToFixture2", fields: [teamParticipationId2], references: [id])
+  tournamentID         Int
 
   isBye     Boolean  @default(false)
   startDate DateTime
@@ -134,6 +148,7 @@ model Tournament {
   intervalBetweenMatches Int
   matchDuration          Int
   organizerCoachId       Int
+  teamParticipations     TeamParticipation[]
 
   organizingSchool School    @relation(fields: [organizingSchoolId], references: [id])
   createdAt        DateTime  @default(now())
@@ -191,6 +206,33 @@ model MatchResult {
   confirmationStatus String
   createdAt          DateTime  @default(now())
   updatedAt          DateTime? @updatedAt
+}
+
+model TeamParticipation {
+  id           Int  @id @default(autoincrement())
+  teamId       Int
+  tournamentId Int
+  team         Team @relation(fields: [teamId], references: [id])
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  fixtures1  Fixture[]  @relation("TeamParticipationToFixture1")
+  fixtures2  Fixture[]  @relation("TeamParticipationToFixture2")
+
+  @@index([teamId], name: "teamId")
+  @@index([tournamentId], name: "tournamentId")
+}
+
+model TeamVersion {
+  id        Int      @id @default(autoincrement())
+  teamId    Int
+  version   Int
+  players   Int[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@unique([teamId, version])
 }
 
 model Tryout {

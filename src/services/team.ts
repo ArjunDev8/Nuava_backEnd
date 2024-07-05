@@ -188,6 +188,15 @@ export const createTeam = async (input: createTeamInput, coachId: number) => {
         },
       });
 
+      // Create a new team version
+      const teamVersion = await prisma.teamVersion.create({
+        data: {
+          teamId: team.id,
+          version: 1, // This is the first version of the team
+          players: players, // Assuming players is an array of player IDs
+        },
+      });
+
       if (!(players.length > 0)) {
         throw new ApolloError("Specify more than one player to create a team");
       }
@@ -223,6 +232,7 @@ export const createTeam = async (input: createTeamInput, coachId: number) => {
 
 export const deleteTeam = async (teamId: number, coachID: number) => {
   try {
+    if (!teamId) throw new ApolloError("Team ID is required");
     const team = await prisma.team.findFirst({
       where: {
         id: teamId,
@@ -234,6 +244,19 @@ export const deleteTeam = async (teamId: number, coachID: number) => {
     }
     if (team.coachID !== coachID) {
       throw new ApolloError("Unauthorized to delete this team");
+    }
+
+    // check if this team is a part of a tournament
+    const tournament = await prisma.participatingSchool.findFirst({
+      where: {
+        schoolId: team.schoolID,
+      },
+    });
+
+    if (tournament) {
+      throw new ApolloError(
+        "This team is part of a tournament. You cannot delete it"
+      );
     }
 
     await prisma.team.delete({
@@ -343,6 +366,21 @@ export const editTeam = async (
           data: {
             name: input.name,
             typeOfSport: input.typeOfSport,
+          },
+        });
+
+        const teamVersionOld = await prisma.teamVersion.findFirst({
+          where: {
+            teamId: teamId,
+          },
+        });
+
+        // Create a new team version
+        const teamVersion = await prisma.teamVersion.create({
+          data: {
+            teamId: teamId,
+            version: teamVersionOld ? teamVersionOld.version + 1 : 1, // This is the first version of the team
+            players: players, // Assuming players is an array of player IDs
           },
         });
       }
