@@ -12,7 +12,7 @@ const main = async () => {
   const seed = await createSeedClient();
 
   // Truncate all tables in the database
-  // await seed.$resetDatabase(["!public._prisma_migrations"]);
+  await seed.$resetDatabase(["!public._prisma_migrations"]);
 
   // // Seed the database with 10 school
   // await seed.school((x) => x(5));
