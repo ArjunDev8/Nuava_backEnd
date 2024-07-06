@@ -59,59 +59,36 @@ const main = async () => {
       domain: "school5.com",
     },
   ];
-  // for (let school of schools) {
-  //   const hashedPasskey = await bcrypt.hash(school.passkey, 10);
-  //   await prisma.school.create({
-  //     data: {
-  //       ...school,
-  //       passkey: hashedPasskey,
-  //     },
-  //   });
-  // }
-  // model Student {
-  //   id                Int                 @id @default(autoincrement())
-  //   name              String
-  //   email             String
-  //   age               Int
-  //   grade             String
-  //   schoolID          Int
-  //   teamID            Int?
-  //   moderatorAccess   Boolean
-  //   token             String?
-  //   password          String
-  //   school            School              @relation(fields: [schoolID], references: [id])
-  //   teams             StudentOnTeam[]
-  //   tryoutParticipant TryoutParticipant[]
-  //   createdAt         DateTime            @default(now())
-  //   updatedAt         DateTime?           @updatedAt
-  // }
+  for (let school of schools) {
+    const hashedPasskey = await bcrypt.hash(school.passkey, 10);
+    await prisma.school.create({
+      data: {
+        ...school,
+        passkey: hashedPasskey,
+      },
+    });
+  }
 
-  // const students = Array.from({ length: 21 }, (_, i) => ({
-  //   name: `Student ${i + 1}`,
-  //   email: `student${i + 1}@school${(i % 3) + 1}.com`,
-  //   age: 10 + i,
-  //   grade: `Grade ${Math.floor(i / 5) + 1}`,
-  //   schoolID: (i % 5) + 1,
-  //   moderatorAccess: false,
-  //   password: `password${i + 1}`,
-  // }));
+  const students = Array.from({ length: 21 }, (_, i) => ({
+    name: `Student ${i + 1}`,
+    email: `student${i + 1}@school${(i % 3) + 1}.com`,
+    age: 10 + i,
+    grade: `Grade ${Math.floor(i / 5) + 1}`,
+    schoolID: (i % 5) + 1,
+    moderatorAccess: false,
+    password: `password${i + 1}`,
+  }));
 
-  // for (let student of students) {
-  //   const hashedPassword = await bcrypt.hash(student.password, 10);
-  //   await prisma.student.create({
-  //     data: {
-  //       ...student,
-  //       password: hashedPassword,
-  //     },
-  //   });
-  // }
+  for (let student of students) {
+    const hashedPassword = await bcrypt.hash(student.password, 10);
+    await prisma.student.create({
+      data: {
+        ...student,
+        password: hashedPassword,
+      },
+    });
+  }
 
-  // create a dummy team
-  // const getDummyTeam = await transaction.team.findFirst({
-  //   where: {
-  //     name: `DummyTeam`,
-  //   },
-  // });
   async function seedDummySchool() {
     // Create a dummy school
     const dummySchool = await prisma.school.create({
