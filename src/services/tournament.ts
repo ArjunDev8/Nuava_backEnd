@@ -575,6 +575,7 @@ export const createFixtures = async ({
   }
 
   if (byeTeam) {
+    console.log("BYE TEAM", byeTeam);
     // Calculate the end time of the match
     const endTime = new Date(currentTime.getTime() + matchDuration * 60000);
 
@@ -584,17 +585,26 @@ export const createFixtures = async ({
       },
     });
 
-    await transaction.fixture.create({
+    console.log(getDummyTeam, "DUMMY TEAM DATA");
+
+    const dummyTeamParticipation = await transaction.teamParticipation.create({
       data: {
-        teamID1: byeTeam.id,
-        teamID2: BYESOPPONENT,
+        teamId: getDummyTeam.id,
+        tournamentId: tournament.id,
+      },
+    });
+
+    console.log(byeTeam.id, getDummyTeam.id, "BYE TEAM DATA");
+
+    const fixture = await transaction.fixture.create({
+      data: {
+        teamParticipationId1: byeTeam.id,
+        teamParticipationId2: dummyTeamParticipation.id,
         tournamentID: tournament.id,
         startDate: currentTime,
         endDate: endTime,
         location: "TBD",
         isBye: true,
-        winnerID: byeTeam.id,
-        round: 2,
       },
     });
   }

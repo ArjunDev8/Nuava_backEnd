@@ -12,7 +12,7 @@ const main = async () => {
   const seed = await createSeedClient();
 
   // Truncate all tables in the database
-  await seed.$resetDatabase(["!public._prisma_migrations"]);
+  // await seed.$resetDatabase(["!public._prisma_migrations"]);
 
   // // Seed the database with 10 school
   // await seed.school((x) => x(5));
@@ -59,15 +59,15 @@ const main = async () => {
       domain: "school5.com",
     },
   ];
-  for (let school of schools) {
-    const hashedPasskey = await bcrypt.hash(school.passkey, 10);
-    await prisma.school.create({
-      data: {
-        ...school,
-        passkey: hashedPasskey,
-      },
-    });
-  }
+  // for (let school of schools) {
+  //   const hashedPasskey = await bcrypt.hash(school.passkey, 10);
+  //   await prisma.school.create({
+  //     data: {
+  //       ...school,
+  //       passkey: hashedPasskey,
+  //     },
+  //   });
+  // }
   // model Student {
   //   id                Int                 @id @default(autoincrement())
   //   name              String
@@ -86,26 +86,82 @@ const main = async () => {
   //   updatedAt         DateTime?           @updatedAt
   // }
 
-  const students = Array.from({ length: 21 }, (_, i) => ({
-    name: `Student ${i + 1}`,
-    email: `student${i + 1}@school${(i % 3) + 1}.com`,
-    age: 10 + i,
-    grade: `Grade ${Math.floor(i / 5) + 1}`,
-    schoolID: (i % 5) + 1,
-    moderatorAccess: false,
-    password: `password${i + 1}`,
-  }));
+  // const students = Array.from({ length: 21 }, (_, i) => ({
+  //   name: `Student ${i + 1}`,
+  //   email: `student${i + 1}@school${(i % 3) + 1}.com`,
+  //   age: 10 + i,
+  //   grade: `Grade ${Math.floor(i / 5) + 1}`,
+  //   schoolID: (i % 5) + 1,
+  //   moderatorAccess: false,
+  //   password: `password${i + 1}`,
+  // }));
 
-  for (let student of students) {
-    const hashedPassword = await bcrypt.hash(student.password, 10);
-    await prisma.student.create({
+  // for (let student of students) {
+  //   const hashedPassword = await bcrypt.hash(student.password, 10);
+  //   await prisma.student.create({
+  //     data: {
+  //       ...student,
+  //       password: hashedPassword,
+  //     },
+  //   });
+  // }
+
+  // create a dummy team
+  // const getDummyTeam = await transaction.team.findFirst({
+  //   where: {
+  //     name: `DummyTeam`,
+  //   },
+  // });
+  async function seedDummySchool() {
+    // Create a dummy school
+    const dummySchool = await prisma.school.create({
       data: {
-        ...student,
-        password: hashedPassword,
+        name: "DummySchool",
+        address: "123 Dummy Street",
+        contactDetails: "dummy@school.com",
+        // Add other required fields here
       },
     });
+
+    // Create a dummy coach for the dummy school
+    const dummyCoach = await prisma.coach.create({
+      data: {
+        name: "DummyCoach",
+        email: "dummy@coach.com",
+        phone: "1234567890",
+        password: "dummyPassword",
+        schoolID: dummySchool.id,
+        // Add other required fields here
+      },
+    });
+
+    // Create a dummy team for the dummy school
+    const dummyTeam = await prisma.team.create({
+      data: {
+        name: "DummyTeam",
+        schoolID: dummySchool.id,
+        coachID: dummyCoach.id,
+        typeOfSport: "Football",
+        // Add other required fields here
+      },
+    });
+
+    // Create a dummy team version for the dummy team
+    const dummyTeamVersion = await prisma.teamVersion.create({
+      data: {
+        teamId: dummyTeam.id,
+        version: 1,
+        players: [], // Add player IDs here if needed
+        // Add other required fields here
+      },
+    });
+
+    console.log(
+      `Created dummy data: School ID ${dummySchool.id}, Coach ID ${dummyCoach.id}, Team ID ${dummyTeam.id}, TeamVersion ID ${dummyTeamVersion.id}`
+    );
   }
 
+  await seedDummySchool();
   process.exit();
 };
 
