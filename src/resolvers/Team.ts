@@ -62,11 +62,14 @@ const TournamentResolvers: IResolvers = {
 
     getAllAvailablePlayers: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
 
+        if (role !== COACH_ROLE) {
+          throw new Error("Unauthorized to get players");
+        }
         const coach = await findCoachByID(id);
 
         if (!coach) {

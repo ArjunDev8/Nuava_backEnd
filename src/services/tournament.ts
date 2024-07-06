@@ -661,93 +661,44 @@ export const getBracket = async (tournamentId: number) => {
         },
       },
     });
-    // {
-    //   node-app-1    |   id: 28,
-    //   node-app-1    |   name: 'UEFA CHAMPIONS LEAGUE 3',
-    //   node-app-1    |   location: 'Madrid',
-    //   node-app-1    |   startDate: 2024-06-20T00:00:00.000Z,
-    //   node-app-1    |   endDate: 2024-06-25T23:59:59.999Z,
-    //   node-app-1    |   typeOfSport: 'FOOTBALL',
-    //   node-app-1    |   organizingSchoolId: 1,
-    //   node-app-1    |   intervalBetweenMatches: 30,
-    //   node-app-1    |   matchDuration: 90,
-    //   node-app-1    |   organizerCoachId: 3,
-    //   node-app-1    |   createdAt: 2024-06-28T19:49:18.014Z,
-    //   node-app-1    |   updatedAt: 2024-06-28T19:49:18.014Z,
-    //   node-app-1    |   fixtures: [
-    //   node-app-1    |     {
-    //   node-app-1    |       id: 161,
-    //   node-app-1    |       location: 'TBD',
-    //   node-app-1    |       teamID1: 1641,
-    //   node-app-1    |       teamID2: 937,
-    //   node-app-1    |       tournamentID: 28,
-    //   node-app-1    |       isBye: false,
-    //   node-app-1    |       startDate: 2024-06-20T11:00:00.000Z,
-    //   node-app-1    |       endDate: 2024-06-20T12:30:00.000Z,
-    //   node-app-1    |       round: 1,
-    //   node-app-1    |       winnerID: null,
-    //   node-app-1    |       createdAt: 2024-06-28T19:49:18.014Z,
-    //   node-app-1    |       updatedAt: 2024-06-28T19:49:18.014Z
-    //   node-app-1    |     },
-    //   node-app-1    |     {
-    //   node-app-1    |       id: 160,
-    //   node-app-1    |       location: 'TBD',
-    //   node-app-1    |       teamID1: 1312,
-    //   node-app-1    |       teamID2: 2,
-    //   node-app-1    |       tournamentID: 28,
-    //   node-app-1    |       isBye: false,
-    //   node-app-1    |       startDate: 2024-06-20T09:00:00.000Z,
-    //   node-app-1    |       endDate: 2024-06-20T10:30:00.000Z,
-    //   node-app-1    |       round: 1,
-    //   node-app-1    |       winnerID: null,
-    //   node-app-1    |       createdAt: 2024-06-28T19:49:18.014Z,
-    //   node-app-1    |       updatedAt: 2024-06-28T19:53:18.176Z
-    //   node-app-1    |     },
-    //   node-app-1    |     {
-    //   node-app-1    |       id: 162,
-    //   node-app-1    |       location: 'TBD',
-    //   node-app-1    |       teamID1: 1512,
-    //   node-app-1    |       teamID2: 3,
-    //   node-app-1    |       tournamentID: 28,
-    //   node-app-1    |       isBye: false,
-    //   node-app-1    |       startDate: 2024-06-20T13:00:00.000Z,
-    //   node-app-1    |       endDate: 2024-06-20T14:30:00.000Z,
-    //   node-app-1    |       round: 1,
-    //   node-app-1    |       winnerID: null,
-    //   node-app-1    |       createdAt: 2024-06-28T19:49:18.014Z,
-    //   node-app-1    |       updatedAt: 2024-06-28T19:53:18.180Z
-    //   node-app-1    |     }
-    //   node-app-1    |   ]
-    //   node-app-1    | }
 
     if (!tournament) {
       throw new ApolloError("Tournament not found");
     }
 
-    const brackets = tournament.fixtures.map((fixture) => {
-      // {
-      //   team1ID: fixture.teamID1,
-      //   team2ID: fixture.teamID2,
-      //   team1Name: team1,
-      //   team2Name: team2,
-      //   team1Score: 0, // TO BE CHANGED TO ACTUAL SCORE
-      //   team2Score: 0, // TO BE CHANGED TO ACTUAL SCORE
-      //   winner: fixture.winnerID,
-      //   startDate: fixture.startDate,
-      //   endDate: fixture.endDate,
-      // }
+    const brackets = tournament.fixtures.map((fixture, index) => {
+      const team1IsWinner = fixture.isBye
+        ? true
+        : fixture.winnerID === fixture.teamParticipation1.teamId;
+      const team2IsWinner = fixture.isBye
+        ? false
+        : fixture.winnerID === fixture.teamParticipation2.teamId;
+
       return {
         id: fixture.id,
-        tournamentId: fixture.tournamentID,
-        team1Id: fixture.teamParticipation1.teamId,
-        team2Id: fixture.teamParticipation2.teamId,
-        team1Name: fixture.teamParticipation1.team.name,
-        team2Name: fixture.teamParticipation2.team.name,
-        team1Score: 0, // TO BE CHANGED TO ACTUAL SCORE
-        team2Score: 0, // TO BE CHANGED TO ACTUAL SCORE
-        winner: fixture.winnerID,
-        startDate: fixture.startDate,
-        endDate: fixture.endDate,
+        name: `${fixture.teamParticipation1.team.name} vs ${fixture.teamParticipation2.team.name}`,
+        nextMatchId: tournament.fixtures[index + 1]
+          ? tournament.fixtures[index + 1].id
+          : null,
+        tournamentRoundText: fixture.round.toString(), // Using the round field to determine the round text
+        startTime: fixture.startDate.toISOString(),
+        state: fixture.isBye ? "DONE" : fixture.winnerID ? "DONE" : "PENDING", // If it's a bye or a winner is set, the state is "DONE". Otherwise, it's "PENDING".
+        participants: [
+          {
+            id: fixture.teamParticipation1.teamId.toString(),
+            name: fixture.teamParticipation1.team.name,
+            resultText: team1IsWinner ? "WON" : null, // If team 1 is the winner, set the result text to "WON". Otherwise, set it to null.
+            isWinner: team1IsWinner,
+            status: fixture.isBye ? "WALK_OVER" : null, // If it's a bye, set the status to "WALK_OVER". Otherwise, you need to determine how to set this.
+          },
+          {
+            id: fixture.teamParticipation2.teamId.toString(),
+            name: fixture.teamParticipation2.team.name,
+            resultText: team2IsWinner ? "WON" : null, // If team 2 is the winner, set the result text to "WON". Otherwise, set it to null.
+            isWinner: team2IsWinner,
+            status: fixture.isBye ? "NO_PARTY" : null, // If it's a bye, set the status to "NO_PARTY". Otherwise, you need to determine how to set this.
+          },
+        ],
       };
     });
 

@@ -105,17 +105,21 @@ input GetBracketsInput {
 }
 
 type Bracket {
-  id: Int!
-  tournamentId: Int!
-  team1Id: Int!
-  team2Id: Int!
-  team1Name: String!
-  team2Name: String!
-  team1Score: Int!
-  team2Score: Int!
-  winner: Int!
-  startDate: String!
-  endDate: String!
+  id: ID!
+  name: String!
+  nextMatchId: ID
+  tournamentRoundText: String!
+  startTime: String!
+  state: String! # 'NO_SHOW' | 'WALK_OVER' | 'NO_PARTY' | 'DONE' | 'SCORE_DONE'
+  participants: [Participant!]!
+}
+
+type Participant {
+  id: ID!
+  name: String!
+  resultText: String # 'WON' or null
+  isWinner: Boolean!
+  status: String # 'PLAYED' | 'NO_SHOW' | 'WALK_OVER' | 'NO_PARTY' | null
 }
 
 input CreateEventInput {

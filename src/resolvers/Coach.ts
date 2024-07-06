@@ -29,10 +29,15 @@ const CoachResolvers: IResolvers = {
   Query: {
     coach: async (_, __, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== COACH_ROLE) {
+          throw new Error("Unauthorized to get coach details");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -47,10 +52,14 @@ const CoachResolvers: IResolvers = {
     },
     getAllStudents: async (_, __, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== COACH_ROLE) {
+          throw new Error("Unauthorized to get students");
+        }
 
         const coach = await findCoachByID(id);
 

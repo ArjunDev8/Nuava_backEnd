@@ -138,10 +138,15 @@ const TournamentResolvers: IResolvers = {
     // Create Tournament
     createTournament: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to create tournament");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -163,10 +168,15 @@ const TournamentResolvers: IResolvers = {
 
     editTournament: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to edit tournament");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -191,10 +201,14 @@ const TournamentResolvers: IResolvers = {
     },
     deleteTournament: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to delete tournament");
+        }
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -217,10 +231,15 @@ const TournamentResolvers: IResolvers = {
 
     swapTeams: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to swap teams");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -249,10 +268,15 @@ const TournamentResolvers: IResolvers = {
 
     deleteFixture: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to delete fixture");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -276,10 +300,15 @@ const TournamentResolvers: IResolvers = {
 
     createEvent: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to create event");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -304,10 +333,15 @@ const TournamentResolvers: IResolvers = {
 
     createInterHouseEvent: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to create event");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -332,10 +366,15 @@ const TournamentResolvers: IResolvers = {
 
     editEvent: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to edit event");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -360,10 +399,15 @@ const TournamentResolvers: IResolvers = {
 
     editInterHouseEvent: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to edit event");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {
@@ -388,10 +432,15 @@ const TournamentResolvers: IResolvers = {
 
     deleteAnyEvent: async (_, { input }, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to delete event");
+        }
+
         const coach = await findCoachByID(id);
 
         if (!coach) {

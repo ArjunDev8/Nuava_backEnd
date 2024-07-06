@@ -21,10 +21,15 @@ const StudentResolvers: IResolvers = {
   Query: {
     student: async (_, __, { auth }) => {
       try {
-        const { id } = verifyJWTToken(
+        const { id, role } = verifyJWTToken(
           auth,
           process.env.JWT_SECRET_KEY as string
         );
+
+        if (role !== STUDENT_ROLE) {
+          throw new Error("Unauthorized to get student details");
+        }
+
         const student = await findStudentByID(id);
 
         if (!student) {
