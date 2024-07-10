@@ -18,6 +18,7 @@ interface CreateTournamentInput {
   typeOfSport: typesOfSport;
   participatingSchoolNames: string[];
   intervalBetweenMatches: number;
+  gender: string;
   tournamentDays: {
     date: Date;
     startTime: Date;
@@ -58,6 +59,7 @@ export const createTournament = async (
         tournamentDays,
         intervalBetweenMatches,
         matchDuration,
+        gender,
       } = input;
 
       const startFormatedDate = new Date(startDate);
@@ -128,6 +130,7 @@ export const createTournament = async (
           tournamentDays: {
             create: tournamentDays,
           },
+          gender,
           intervalBetweenMatches,
           matchDuration,
           organizerCoachId: coach.id,

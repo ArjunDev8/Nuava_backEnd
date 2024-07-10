@@ -15,6 +15,7 @@ import {
   findCoach,
   findCoachByID,
   generateForgotPasswordToken,
+  getAllCoaches,
   getAllStudents,
   getUserType,
   sendCoachOtp,
@@ -72,6 +73,31 @@ const CoachResolvers: IResolvers = {
         return students;
       } catch (err: any) {
         console.log("Error in getAllStudents resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+    getAllCoaches: async (_, __, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        if (role !== COACH_ROLE) {
+          throw new Error("Unauthorized to get coaches");
+        }
+
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const coaches = await getAllCoaches({ schoolID: coach.schoolID });
+
+        return coaches;
+      } catch (err: any) {
+        console.log("Error in getAllCoaches resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

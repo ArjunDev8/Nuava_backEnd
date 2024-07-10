@@ -8,6 +8,7 @@ type Query {
   getAllAvailablePlayers(input: AvailablePlayersInput!): [Student]
   getBrackets(input: GetBracketsInput!): [Bracket]
   getAllEvents: [Event]
+  getAllCoaches: [Coach]
 }
 
 type Mutation {

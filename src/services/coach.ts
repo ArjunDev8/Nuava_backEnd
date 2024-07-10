@@ -302,3 +302,23 @@ export const getAllStudents = async ({
     throw err;
   }
 };
+
+export const getAllCoaches = async ({
+  schoolID,
+}: {
+  schoolID: number;
+}): Promise<Array<Coach>> => {
+  try {
+    const coaches = await prisma.coach.findMany({
+      where: {
+        schoolID,
+      },
+    });
+
+    console.log(coaches);
+
+    return coaches;
+  } catch (err: any) {
+    throw err;
+  }
+};

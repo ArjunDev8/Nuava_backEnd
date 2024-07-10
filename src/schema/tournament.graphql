@@ -35,6 +35,7 @@ input CreateTournamentInput {
   intervalBetweenMatches: Int!
   tournamentDays: [TournamentDayInput!]!
   matchDuration: Int!
+  gender: String!
   participatingSchoolNames: [String!]!
 }
 
@@ -54,6 +55,7 @@ input EditTournamentInput {
   intervalBetweenMatches: Int
   tournamentDays: [TournamentDayInput!]
   matchDuration: Int
+  gender: String
   participatingSchoolNames: [String!]
 }
 

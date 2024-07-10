@@ -149,6 +149,7 @@ model Tournament {
   matchDuration          Int
   organizerCoachId       Int
   teamParticipations     TeamParticipation[]
+  gender                 String
 
   organizingSchool School    @relation(fields: [organizingSchoolId], references: [id])
   createdAt        DateTime  @default(now())
