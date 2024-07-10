@@ -1119,6 +1119,32 @@ export const getAllEvents = async (schoolId: number) => {
   }
 };
 
+export const getAllInterHouseEvents = async (schoolId: number) => {
+  try {
+    const events = await prisma.events.findMany({
+      where: {
+        schoolID: schoolId,
+        typeOfEvent: INTER_HOUSE_EVENT,
+      },
+    });
+    const result = events.map((event) => {
+      return {
+        id: event.id,
+        title: event.title,
+        startDate: event.start,
+        endDate: event.end,
+        isAllDay: event.allDay,
+        details: JSON.stringify(event.details),
+        typeOfEvent: event.typeOfEvent,
+      };
+    });
+
+    return result;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
 export const getAllTournaments = async (schoolId: number) => {
   try {
     const tournaments = await prisma.participatingSchool.findMany({

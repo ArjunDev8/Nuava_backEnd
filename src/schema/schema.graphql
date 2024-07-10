@@ -9,6 +9,7 @@ type Query {
   getBrackets(input: GetBracketsInput!): [Bracket]
   getAllEvents: [Event]
   getAllCoaches: [Coach]
+  getAllInterHouseEvents: [Event]
 }
 
 type Mutation {
