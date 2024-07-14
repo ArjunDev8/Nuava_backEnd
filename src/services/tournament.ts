@@ -1,6 +1,12 @@
 import { ApolloError } from "apollo-server-errors";
 import { prisma } from "../db";
-import { Coach, School, Tournament, TournamentDay } from "@prisma/client";
+import {
+  Coach,
+  Fixture,
+  School,
+  Tournament,
+  TournamentDay,
+} from "@prisma/client";
 import { typesOfSport } from "./team";
 import {
   BYESOPPONENT,
@@ -1181,6 +1187,101 @@ export const getFixtureById = async (fixtureId: number) => {
     }
 
     return fixture;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const startFixture = async (fixtureId: number) => {
+  try {
+    const result = await prisma.$transaction(async (prisma) => {
+      const fixture = await prisma.fixture.findFirst({
+        where: {
+          id: fixtureId,
+        },
+      });
+
+      if (!fixture) {
+        throw new ApolloError("Fixture not found");
+      }
+
+      const updatedFixture = await prisma.fixture.update({
+        where: {
+          id: fixtureId,
+        },
+        data: {
+          status: "live",
+        },
+      });
+
+      //create a matchresult event for the fixture
+      // model MatchResult {
+      //   id                 Int       @id @default(autoincrement())
+      //   fixtureID          Int
+      //   finalScore         String
+      //   homeTeamScore      String
+      //   awayTeamScore      String
+      //   confirmationStatus String
+      //   createdAt          DateTime  @default(now())
+      //   updatedAt          DateTime? @updatedAt
+      // }
+      await prisma.matchResult.create({
+        data: {
+          fixtureID: fixtureId,
+          homeTeamScore: "0",
+          awayTeamScore: "0",
+          confirmationStatus: "pending",
+          finalScore: "0-0",
+        },
+      });
+
+      return updatedFixture;
+    });
+    return result;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const logFixtureUpdate = async ({
+  fixtureId,
+  eventType,
+  teamId,
+  playerId,
+  fixture,
+  pubsub,
+}: {
+  fixtureId: number;
+  eventType: "Goal" | "YellowCard" | "RedCard";
+  teamId: number;
+  playerId?: number;
+  fixture: Fixture;
+  pubsub: any;
+}) => {
+  try {
+    const result = await prisma.$transaction(async (prisma) => {
+      const scoreLog = await prisma.scoreLog.create({
+        data: {
+          fixtureID: fixtureId,
+          eventType: eventType,
+          teamID: teamId,
+          playerID: playerId,
+        },
+      });
+
+      pubsub.publish("SCORE_UPDATE_1", {
+        scoreUpdates: {
+          fixtureId: fixtureId,
+          eventType: eventType,
+          teamId: teamId,
+          playerId: playerId,
+        },
+      });
+
+      return scoreLog;
+    });
+
+    return result;
   } catch (err: any) {
     throw err;
   }

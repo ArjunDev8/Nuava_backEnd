@@ -1,30 +1,7 @@
 import { IResolvers } from "@graphql-tools/utils";
-import jsonwebtoken from "jsonwebtoken";
-import {
-  checkPassword,
-  checkStudentExists,
-  findOTPRecord,
-  findStudent,
-  findStudentByID,
-  invalidateOTPs,
-  verifyJWTToken,
-} from "../services/student";
 import { ApolloError } from "apollo-server-express";
-import {
-  checkAndSetPassword,
-  checkCoachExists,
-  createCoach,
-  findCoach,
-  findCoachByID,
-  generateForgotPasswordToken,
-  getUserType,
-  sendCoachOtp,
-  UserEnum,
-  validatePasskey,
-} from "../services/coach";
-import { COACH_ROLE, OTP_PURPOSE_REGISTER } from "../constants";
-import { generateJWTToken, hashedPassword } from "../helper/utils";
-import { emailQueue, getEmailTemplate } from "../services/email";
+import { findCoachByID, UserEnum } from "../services/coach";
+import { findStudentByID, verifyJWTToken } from "../services/student";
 import {
   createEvent,
   createTournament,
@@ -37,8 +14,13 @@ import {
   getAllInterHouseEvents,
   getAllTournaments,
   getBracket,
+  getFixtureById,
+  logFixtureUpdate,
+  startFixture,
   swapTeamsInFixture,
 } from "../services/tournament";
+import { pubsub } from "../services/queue";
+import { log } from "console";
 
 const TournamentResolvers: IResolvers = {
   Query: {
@@ -489,6 +471,86 @@ const TournamentResolvers: IResolvers = {
         console.log("Error in deleteEvent resolver: ", err.message);
         throw new ApolloError(err.message);
       }
+    },
+
+    startFixture: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const { fixtureId } = input;
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to start fixture");
+        }
+
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        await startFixture(fixtureId);
+
+        return {
+          status: true,
+          message: "Fixture started successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in startFixture resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    fixtureUpdates: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to start fixture");
+        }
+
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const { fixtureId, eventType, teamId, playerId } = input;
+
+        const fixture = await getFixtureById(fixtureId);
+
+        await logFixtureUpdate({
+          fixtureId,
+          eventType,
+          teamId,
+          playerId,
+          fixture,
+          pubsub,
+        });
+
+        return {
+          status: true,
+          message: "Score updated successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in scoreUpdate resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+  },
+  Subscription: {
+    scoreUpdates: {
+      subscribe: (_, { fixtureIDs }) => {
+        return pubsub.asyncIterator(
+          // fixtureIDs.map((id: number) => `SCORE_UPDATE_${id}`)
+          "SCORE_UPDATE_1"
+        );
+      },
     },
   },
 };

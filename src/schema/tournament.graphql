@@ -177,3 +177,36 @@ input EditInterHouseEventInput {
   house2Name: String
   typeOfSport: String
 }
+
+input StartFixtureInput {
+  fixtureId: Int!
+}
+input FixtureUpdatesInput {
+  fixtureId: Int!
+  eventType: EventType!
+  teamId: Int!
+  playerId: Int
+}
+
+# enum EventType {
+#   Goal
+#   RedCard
+#   YellowCard
+# }
+
+enum EventType {
+  Goal
+  RedCard
+  YellowCard
+}
+
+input ScoreUpdatesInput {
+  fixtureIds: [Int!]!
+}
+
+type ScoreUpdatesResponse {
+  fixtureId: Int!
+  eventType: EventType!
+  teamId: Int!
+  playerId: Int
+}

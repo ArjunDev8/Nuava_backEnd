@@ -44,8 +44,11 @@ type Mutation {
 
   createInterHouseEvent(input: CreateInterHouseEventInput!): Result!
   editInterHouseEvent(input: EditInterHouseEventInput!): Result!
+
+  startFixture(input: StartFixtureInput!): Result!
+  fixtureUpdates(input: FixtureUpdatesInput!): Result!
 }
 
-# type Subscription {
-
-# }
+type Subscription {
+  scoreUpdates(input: ScoreUpdatesInput!): ScoreUpdatesResponse!
+}

@@ -90,18 +90,21 @@ model Coach {
 //   updatedAt   DateTime?       @updatedAt
 // }
 model Team {
-  id             Int                 @id @default(autoincrement())
-  name           String
-  schoolID       Int
-  coachID        Int
-  typeOfSport    String
-  school         School              @relation(fields: [schoolID], references: [id])
-  coach          Coach               @relation(fields: [coachID], references: [id])
-  students       StudentOnTeam[]
+  id          Int             @id @default(autoincrement())
+  name        String
+  schoolID    Int
+  coachID     Int
+  typeOfSport String
+  school      School          @relation(fields: [schoolID], references: [id])
+  coach       Coach           @relation(fields: [coachID], references: [id])
+  students    StudentOnTeam[]
+  scoreLogs   ScoreLog[]
+
   createdAt      DateTime            @default(now())
   updatedAt      DateTime?           @updatedAt
   participations TeamParticipation[]
   Versions       TeamVersion[]
+  TeamScore      TeamScore[]
 }
 
 model Fixture {
@@ -113,11 +116,14 @@ model Fixture {
   teamParticipation2   TeamParticipation @relation("TeamParticipationToFixture2", fields: [teamParticipationId2], references: [id])
   tournamentID         Int
 
-  isBye     Boolean  @default(false)
+  isBye     Boolean     @default(false)
   startDate DateTime
   endDate   DateTime
-  round     Int      @default(1)
+  round     Int         @default(1)
   winnerID  Int?
+  status    String      @default("pending")
+  scoreLog  ScoreLog[]
+  teamScore TeamScore[]
 
   tournament Tournament @relation(fields: [tournamentID], references: [id], onDelete: Cascade)
 
@@ -280,13 +286,6 @@ model ParticipatingSchool {
   @@id([schoolId, tournamentId])
 }
 
-// {
-//   title: 'Sample Event',
-//   start: new Date(),
-//   end: new Date(),
-//   allDay: false,
-// },
-
 model Events {
   id                Int       @id @default(autoincrement())
   title             String
@@ -300,4 +299,41 @@ model Events {
   school            School    @relation(fields: [schoolID], references: [id])
   createdAt         DateTime  @default(now())
   updatedAt         DateTime? @updatedAt
+}
+
+model ScoreLog {
+  id        Int       @id @default(autoincrement())
+  fixtureID Int
+  teamID    Int
+  playerID  Int?
+  timestamp DateTime  @default(now())
+  eventType EventType
+  details   String?
+
+  fixture Fixture @relation(fields: [fixtureID], references: [id])
+  team    Team    @relation(fields: [teamID], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+enum EventType {
+  Goal
+  RedCard
+  YellowCard
+}
+
+model TeamScore {
+  id        Int @id @default(autoincrement())
+  fixtureID Int
+  teamID    Int
+  goals     Int @default(0)
+
+  fixture Fixture @relation(fields: [fixtureID], references: [id])
+  team    Team    @relation(fields: [teamID], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@unique([fixtureID, teamID])
 }
