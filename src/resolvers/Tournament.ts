@@ -74,11 +74,10 @@ const TournamentResolvers: IResolvers = {
           throw new Error("User not found");
         }
 
-        const { tournamentID } = input;
+        const { tournamentId } = input;
+        console.log(tournamentId, "tournament");
 
-        const tournament = await getBracket(tournamentID);
-
-        console.log(tournament, "tournament");
+        const tournament = await getBracket(tournamentId);
 
         return tournament;
       } catch (err: any) {

@@ -549,21 +549,28 @@ export const createFixtures = async ({
         },
       });
 
+      const teamData = await transaction.team.findMany({
+        where: {
+          id: {
+            in: [
+              participatingTeams[i].teamId,
+              participatingTeams[i + 1].teamId,
+            ],
+          },
+        },
+      });
+
       //CREATE A ENTRY IN THE EVENTS TABLE
       const event = await transaction.events.create({
         data: {
-          title: `${participatingTeams[i].name} vs ${
-            participatingTeams[i + 1].name
-          }`,
+          title: `Match between ${teamData[0].name} and ${teamData[1].name}`,
           start: currentTime,
           end: endTime,
           allDay: false,
           schoolID: coach.schoolID,
           typeOfEvent: FIXURE_EVENT,
           details: {
-            description: `Match between ${participatingTeams[i].name} and ${
-              participatingTeams[i + 1].name
-            }`,
+            description: `Match between ${teamData[0].name} and ${teamData[1].name}`,
             fixtureID: fixture.id,
           },
           isInterHouseEvent: false,
