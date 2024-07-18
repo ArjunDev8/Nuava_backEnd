@@ -205,14 +205,18 @@ model PlayerStat {
 }
 
 model MatchResult {
-  id                 Int       @id @default(autoincrement())
+  id                 Int               @id @default(autoincrement())
   fixtureID          Int
+  homeTeamID         Int
+  awayTeamID         Int
   finalScore         String
   homeTeamScore      String
   awayTeamScore      String
   confirmationStatus String
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime? @updatedAt
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime?         @updatedAt
+  homeTeam           TeamParticipation @relation("HomeTeamParticipationToMatchResult", fields: [homeTeamID], references: [id])
+  awayTeam           TeamParticipation @relation("AwayTeamParticipationToMatchResult", fields: [awayTeamID], references: [id])
 }
 
 model TeamParticipation {
@@ -221,9 +225,11 @@ model TeamParticipation {
   tournamentId Int
   team         Team @relation(fields: [teamId], references: [id])
 
-  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  fixtures1  Fixture[]  @relation("TeamParticipationToFixture1")
-  fixtures2  Fixture[]  @relation("TeamParticipationToFixture2")
+  tournament  Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  fixtures1   Fixture[]     @relation("TeamParticipationToFixture1")
+  fixtures2   Fixture[]     @relation("TeamParticipationToFixture2")
+  homeMatches MatchResult[] @relation("HomeTeamParticipationToMatchResult")
+  awayMatches MatchResult[] @relation("AwayTeamParticipationToMatchResult")
 
   @@index([teamId], name: "teamId")
   @@index([tournamentId], name: "tournamentId")

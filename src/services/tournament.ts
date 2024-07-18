@@ -713,16 +713,16 @@ export const getBracket = async (tournamentId: number) => {
           {
             id: fixture.teamParticipation1.teamId.toString(),
             name: fixture.teamParticipation1.team.name,
-            resultText: team1IsWinner ? "WON" : null, // If team 1 is the winner, set the result text to "WON". Otherwise, set it to null.
+            resultText: team1IsWinner ? "WON" : null, // If team 1 is the winner, set the result text to "WON".
             isWinner: team1IsWinner,
             status: fixture.isBye ? "WALK_OVER" : null, // If it's a bye, set the status to "WALK_OVER". Otherwise, you need to determine how to set this.
           },
           {
             id: fixture.teamParticipation2.teamId.toString(),
             name: fixture.teamParticipation2.team.name,
-            resultText: team2IsWinner ? "WON" : null, // If team 2 is the winner, set the result text to "WON". Otherwise, set it to null.
+            resultText: team2IsWinner ? "WON" : null, // If team 2 is the winner, set the result text to "WON".
             isWinner: team2IsWinner,
-            status: fixture.isBye ? "NO_PARTY" : null, // If it's a bye, set the status to "NO_PARTY". Otherwise, you need to determine how to set this.
+            status: fixture.isBye ? "NO_PARTY" : null, // If it's a bye, set the status to "NO_PARTY"
           },
         ],
       };
@@ -1220,25 +1220,23 @@ export const startFixture = async (fixtureId: number) => {
           status: "live",
         },
       });
-
-      //create a matchresult event for the fixture
-      // model MatchResult {
-      //   id                 Int       @id @default(autoincrement())
-      //   fixtureID          Int
-      //   finalScore         String
-      //   homeTeamScore      String
-      //   awayTeamScore      String
-      //   confirmationStatus String
-      //   createdAt          DateTime  @default(now())
-      //   updatedAt          DateTime? @updatedAt
-      // }
       await prisma.matchResult.create({
         data: {
           fixtureID: fixtureId,
           homeTeamScore: "0",
           awayTeamScore: "0",
-          confirmationStatus: "pending",
           finalScore: "0-0",
+          confirmationStatus: "PENDING",
+          homeTeam: {
+            connect: {
+              id: fixture.teamParticipationId1,
+            },
+          },
+          awayTeam: {
+            connect: {
+              id: fixture.teamParticipationId2,
+            },
+          },
         },
       });
 
@@ -1275,6 +1273,61 @@ export const logFixtureUpdate = async ({
           playerID: playerId,
         },
       });
+      if (
+        teamId !== fixture.teamParticipationId1 &&
+        teamId !== fixture.teamParticipationId2
+      ) {
+        throw new ApolloError("Team not found in the fixture");
+      }
+
+      // If the event type is a goal, update the match result
+      if (eventType === "Goal") {
+        const matchResult = await prisma.matchResult.findFirst({
+          where: {
+            fixtureID: fixtureId,
+          },
+        });
+
+        console.log(
+          fixture.teamParticipationId1,
+          fixture.teamParticipationId2,
+          teamId
+        );
+
+        if (!matchResult) {
+          throw new ApolloError("Match result not found");
+        }
+
+        const team1Score = fixture.teamParticipationId1 === teamId;
+        const team2Score = fixture.teamParticipationId2 === teamId;
+
+        const homeTeamScore = team1Score
+          ? parseInt(matchResult.homeTeamScore) + 1
+          : parseInt(matchResult.homeTeamScore);
+
+        const awayTeamScore = team2Score
+          ? parseInt(matchResult.awayTeamScore) + 1
+          : parseInt(matchResult.awayTeamScore);
+
+        const finalScore = `${homeTeamScore}-${awayTeamScore}`;
+
+        const matchID = await prisma.matchResult.findFirst({
+          where: {
+            fixtureID: fixtureId,
+          },
+        });
+
+        await prisma.matchResult.update({
+          where: {
+            id: matchID?.id,
+          },
+          data: {
+            homeTeamScore: homeTeamScore.toString(),
+            awayTeamScore: awayTeamScore.toString(),
+            finalScore: finalScore,
+          },
+        });
+      }
 
       pubsub.publish("SCORE_UPDATE_1", {
         scoreUpdates: {
@@ -1293,3 +1346,46 @@ export const logFixtureUpdate = async ({
     throw err;
   }
 };
+
+export const getWholeFixtureDetails = async (fixtureId: number) => {
+  try {
+    const fixture = await prisma.fixture.findFirst({
+      where: {
+        id: fixtureId,
+      },
+      include: {
+        teamParticipation1: {
+          include: {
+            team: true,
+          },
+        },
+        teamParticipation2: {
+          include: {
+            team: true,
+          },
+        },
+      },
+    });
+
+    if (!fixture) {
+      throw new ApolloError("Fixture not found");
+    }
+
+    const matchResults = await prisma.matchResult.findFirst({
+      where: {
+        fixtureID: fixtureId,
+      },
+    });
+
+    console.log(fixture, matchResults, "FIXTURE DATA");
+
+    return {
+      fixture,
+      matchResults,
+    };
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+console.log(getWholeFixtureDetails(1));
