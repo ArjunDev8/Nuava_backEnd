@@ -13,10 +13,9 @@ services:
       - citus
       - fluentd
     command: yarn dev
-
     volumes:
       - .:/usr/src/node-app
-      - /usr/src/node-app/node_modules
+      - node-modules:/usr/src/node-app/node_modules
     networks:
       - node-network
     extra_hosts:
@@ -30,14 +29,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres:/var/lib/postgresql/data
-      # To use a local directory instead:
-      # - ./postgres:/var/lib/postgresql/data
-
     environment:
       POSTGRES_PASSWORD: docker
       POSTGRES_DB: nyneDB
     networks:
       - node-network
+
   redis:
     image: redis
     restart: always
@@ -62,6 +59,7 @@ services:
       - POSTGRES_PASSWORD=docker
     networks:
       - node-network
+
   fluentd:
     container_name: nyne_fluentd
     restart: always
@@ -74,10 +72,12 @@ services:
       - node-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
 volumes:
   postgres:
   redis:
   citus:
+  node-modules:
 
 networks:
   node-network:
