@@ -19,7 +19,7 @@ RUN yarn install
 COPY --chown=node:node . .
 
 # Generate Prisma client
-RUN npx prisma generate
+# RUN npx prisma generate
 
 # Expose port
 EXPOSE 3000
