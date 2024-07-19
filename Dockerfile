@@ -7,7 +7,7 @@ RUN mkdir -p /usr/src/node-app && chown -R node:node /usr/src/node-app
 WORKDIR /usr/src/node-app
 
 # Install app dependencies
-COPY package.json yarn.lock ./
+COPY package.json  ./
 
 # Switch to non-root user
 USER node
