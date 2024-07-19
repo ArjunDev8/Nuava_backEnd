@@ -1595,5 +1595,3 @@ export const getMatchDetails = async (fixtureId: number) => {
     throw err;
   }
 };
-
-console.log(getMatchDetails(1));
