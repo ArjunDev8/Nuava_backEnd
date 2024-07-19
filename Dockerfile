@@ -1,28 +1,17 @@
 FROM node:alpine
 
-# Create app directory
 RUN mkdir -p /usr/src/node-app && chown -R node:node /usr/src/node-app
 
-# Set working directory
 WORKDIR /usr/src/node-app
 
-# Install app dependencies
-COPY package.json  ./
+COPY package.json yarn.lock ./
 
-# Switch to non-root user
 USER node
 
-# Install dependencies including devDependencies
-RUN yarn install 
+RUN yarn install --pure-lockfile
 
-# Bundle app source
 COPY --chown=node:node . .
 
-# Generate Prisma client
-# RUN npx prisma generate
+RUN npx prisma generate
 
-# Expose port
 EXPOSE 3000
-
-# Start the app
-CMD ["yarn", "dev"]
