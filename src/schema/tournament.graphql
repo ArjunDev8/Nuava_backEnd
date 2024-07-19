@@ -186,6 +186,7 @@ input FixtureUpdatesInput {
   eventType: EventType!
   teamId: Int!
   playerId: Int
+  isATeamWithoutPlayers: Boolean!
 }
 
 # enum EventType {
@@ -209,4 +210,23 @@ type ScoreUpdatesResponse {
   eventType: EventType!
   teamId: Int!
   playerId: Int
+}
+
+type CardsGivenTo {
+  playerId: Int!
+  playerName: String!
+  eventType: String!
+}
+
+type MatchDetailsAndScoreForTeam {
+  teamID: Int!
+  teamName: String!
+  score: String!
+  matchEvents: [CardsGivenTo!]!
+}
+
+type MatchDetailsAndScore {
+  fixtureId: Int!
+  teamDetails: [MatchDetailsAndScoreForTeam]!
+  score: String!
 }

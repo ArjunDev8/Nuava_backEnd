@@ -4,6 +4,7 @@ import {
   Coach,
   Fixture,
   School,
+  Team,
   Tournament,
   TournamentDay,
 } from "@prisma/client";
@@ -1255,24 +1256,33 @@ export const logFixtureUpdate = async ({
   playerId,
   fixture,
   pubsub,
+  isATeamWithoutPlayers,
 }: {
   fixtureId: number;
   eventType: "Goal" | "YellowCard" | "RedCard";
   teamId: number;
-  playerId?: number;
+  playerId: number;
   fixture: Fixture;
   pubsub: any;
+  isATeamWithoutPlayers: boolean;
 }) => {
   try {
+    if (playerId === undefined) {
+      throw new Error("playerID is undefined");
+    }
     const result = await prisma.$transaction(async (prisma) => {
-      const scoreLog = await prisma.scoreLog.create({
-        data: {
-          fixtureID: fixtureId,
-          eventType: eventType,
-          teamID: teamId,
-          playerID: playerId,
-        },
-      });
+      let scoreLog;
+      if (!isATeamWithoutPlayers) {
+        await prisma.scoreLog.create({
+          data: {
+            fixtureID: fixtureId,
+            eventType: eventType,
+            teamID: teamId,
+            playerID: playerId,
+          },
+        });
+      }
+
       if (
         teamId !== fixture.teamParticipationId1 &&
         teamId !== fixture.teamParticipationId2
@@ -1334,7 +1344,7 @@ export const logFixtureUpdate = async ({
           fixtureId: fixtureId,
           eventType: eventType,
           teamId: teamId,
-          playerId: playerId,
+          playerId: playerId || 0,
         },
       });
 
@@ -1388,4 +1398,202 @@ export const getWholeFixtureDetails = async (fixtureId: number) => {
   }
 };
 
-console.log(getWholeFixtureDetails(1));
+export const getLineUps = async (fixtureId: number) => {
+  try {
+    console.log(fixtureId, "FIXTURE ID");
+    // GETTING THE DATA OF BOTH THE TEAMS PARTICIPATING IN THE FIXTURE
+    const fixture = await prisma.fixture.findFirst({
+      where: {
+        id: Number(fixtureId),
+      },
+      include: {
+        teamParticipation1: {
+          include: {
+            team: true,
+          },
+        },
+        teamParticipation2: {
+          include: {
+            team: true,
+          },
+        },
+      },
+    });
+
+    if (!fixture) {
+      throw new Error(`Fixture not found for the specified id ${fixtureId}`);
+    }
+
+    console.log(fixture, "FIXTURE DATA");
+
+    // GETTING THE STUDENT DATA OF THE TEAM
+
+    const team1 = await prisma.studentOnTeam.findMany({
+      where: {
+        teamId: fixture.teamParticipation1.teamId,
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            age: true,
+          },
+        },
+      },
+    });
+
+    const team2 = await prisma.studentOnTeam.findMany({
+      where: {
+        teamId: fixture.teamParticipation2.teamId,
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            age: true,
+          },
+        },
+      },
+    });
+
+    const resultData = new Map();
+
+    resultData.set(fixture.teamParticipation1.teamId, {
+      name: fixture.teamParticipation1.team.name,
+      students: team1,
+    });
+
+    resultData.set(fixture.teamParticipation2.teamId, {
+      name: fixture.teamParticipation2.team.name,
+      students: team2,
+    });
+
+    return resultData;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+// type CardsGivenTo {
+//   playerId: Int!
+//   playerName: String!
+//   cardType: String!
+// }
+
+// type MatchDetailsAndScoreForTeam {
+//   teamID: Int!
+//   teamName: String!
+//   score: String!
+//   cardsGivenTo: [CardsGivenTo!]!
+// }
+
+// type MatchDetailsAndScore {
+//   fixtureId: Int!
+//   teamDetails: [MatchDetailsAndScoreForTeam]!
+//   score: String!
+// }
+
+export const getMatchDetails = async (fixtureId: number) => {
+  try {
+    const fixture = await prisma.fixture.findFirst({
+      where: {
+        id: fixtureId,
+      },
+      include: {
+        teamParticipation1: {
+          include: {
+            team: true,
+          },
+        },
+        teamParticipation2: {
+          include: {
+            team: true,
+          },
+        },
+      },
+    });
+
+    if (!fixture) {
+      throw new ApolloError("Fixture not found");
+    }
+
+    const matchResults = await prisma.matchResult.findFirst({
+      where: {
+        fixtureID: fixtureId,
+      },
+    });
+
+    if (!matchResults) {
+      throw new ApolloError("Match result not found");
+    }
+
+    const matchEvents = await prisma.scoreLog.findMany({
+      where: {
+        fixtureID: fixtureId,
+        eventType: {
+          in: ["YellowCard", "RedCard", "Goal"],
+        },
+      },
+      include: {
+        student: true,
+      },
+    });
+
+    console.log(matchEvents, "MATCH EVENTS");
+
+    const team1Cards = matchEvents.filter(
+      (card) => card.teamID === fixture.teamParticipationId1
+    );
+    const team2Cards = matchEvents.filter(
+      (card) => card.teamID === fixture.teamParticipationId2
+    );
+
+    const team1Score =
+      fixture.teamParticipationId1 === matchResults.homeTeamID
+        ? matchResults.homeTeamScore
+        : matchResults.awayTeamScore;
+    const team2Score =
+      fixture.teamParticipationId2 === matchResults.awayTeamID
+        ? matchResults.awayTeamScore
+        : matchResults.homeTeamScore;
+    const team1 = {
+      teamID: fixture.teamParticipationId1,
+      teamName: fixture.teamParticipation1.team.name,
+      score: team1Score,
+      matchEvents: team1Cards.map((card) => {
+        return {
+          playerId: card.student.id,
+          playerName: card.student.name,
+          eventType: card.eventType,
+        };
+      }),
+    };
+
+    const team2 = {
+      teamID: fixture.teamParticipationId2,
+      teamName: fixture.teamParticipation2.team.name,
+      score: team2Score,
+      matchEvents: team2Cards.map((card) => {
+        return {
+          playerId: card.student.id,
+          playerName: card.student.name,
+          eventType: card.eventType,
+        };
+      }),
+    };
+
+    console.log(team1, team2, "TEAM DATA");
+
+    return {
+      fixtureId: fixtureId,
+      teamDetails: [team1, team2],
+      score: matchResults.finalScore,
+    };
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+console.log(getMatchDetails(1));

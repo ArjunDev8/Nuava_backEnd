@@ -15,6 +15,7 @@ import {
   getAllTournaments,
   getBracket,
   getFixtureById,
+  getMatchDetails,
   logFixtureUpdate,
   startFixture,
   swapTeamsInFixture,
@@ -143,6 +144,34 @@ const TournamentResolvers: IResolvers = {
         throw new ApolloError(err.message);
       }
     },
+
+    getMatchDetailsAndScore: async (_, { fixtureId }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        let user = null;
+
+        if (role === UserEnum.COACH) {
+          user = await findCoachByID(id);
+        } else {
+          user = await findStudentByID(id);
+        }
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const matchDetails = await getMatchDetails(Number(fixtureId));
+
+        return matchDetails;
+      } catch (err: any) {
+        console.log("Error in getMatchDetailsAndScore resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
   },
 
   Mutation: {
@@ -210,6 +239,7 @@ const TournamentResolvers: IResolvers = {
         throw new ApolloError(err.message);
       }
     },
+
     deleteTournament: async (_, { input }, { auth }) => {
       try {
         const { id, role } = verifyJWTToken(
@@ -519,7 +549,13 @@ const TournamentResolvers: IResolvers = {
           throw new Error("Coach not found");
         }
 
-        const { fixtureId, eventType, teamId, playerId } = input;
+        const {
+          fixtureId,
+          eventType,
+          teamId,
+          playerId,
+          isATeamWithoutPlayers,
+        } = input;
 
         const fixture = await getFixtureById(fixtureId);
 
@@ -530,6 +566,7 @@ const TournamentResolvers: IResolvers = {
           playerId,
           fixture,
           pubsub,
+          isATeamWithoutPlayers,
         });
 
         return {

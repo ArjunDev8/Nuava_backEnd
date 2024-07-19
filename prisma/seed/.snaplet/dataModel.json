@@ -1606,7 +1606,7 @@
           "name": "playerID",
           "columnName": "playerID",
           "type": "int4",
-          "isRequired": false,
+          "isRequired": true,
           "kind": "scalar",
           "isList": false,
           "isGenerated": false,
@@ -1686,6 +1686,20 @@
           "maxLength": null
         },
         {
+          "id": "public.ScoreLog.teamId",
+          "name": "teamId",
+          "columnName": "teamId",
+          "type": "int4",
+          "isRequired": false,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false,
+          "isId": false,
+          "maxLength": null
+        },
+        {
           "name": "Fixture",
           "type": "Fixture",
           "isRequired": true,
@@ -1704,11 +1718,47 @@
           "hasDefaultValue": false
         },
         {
-          "name": "Team",
-          "type": "Team",
+          "name": "Student",
+          "type": "Student",
           "isRequired": true,
           "kind": "object",
+          "relationName": "ScoreLogToStudent",
+          "relationFromFields": [
+            "playerID"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "Team",
+          "type": "Team",
+          "isRequired": false,
+          "kind": "object",
           "relationName": "ScoreLogToTeam",
+          "relationFromFields": [
+            "teamId"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "TeamParticipation",
+          "type": "TeamParticipation",
+          "isRequired": true,
+          "kind": "object",
+          "relationName": "ScoreLogToTeamParticipation",
           "relationFromFields": [
             "teamID"
           ],
@@ -2172,6 +2222,20 @@
             "id"
           ],
           "isList": false,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "ScoreLog",
+          "type": "ScoreLog",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "ScoreLogToStudent",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
           "isId": false,
           "isGenerated": false,
           "sequence": false,
@@ -2656,6 +2720,20 @@
           "isRequired": false,
           "kind": "object",
           "relationName": "MatchResult_homeTeamIDToTeamParticipation",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "ScoreLog",
+          "type": "ScoreLog",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "ScoreLogToTeamParticipation",
           "relationFromFields": [],
           "relationToFields": [],
           "isList": true,

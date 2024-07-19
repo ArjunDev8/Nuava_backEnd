@@ -10,6 +10,9 @@ type Query {
   getAllEvents: [Event]
   getAllCoaches: [Coach]
   getAllInterHouseEvents: [Event]
+
+  getLineUps(fixtureId: ID!): [TeamOfFixture!]!
+  getMatchDetailsAndScore(fixtureId: ID!): MatchDetailsAndScore!
 }
 
 type Mutation {

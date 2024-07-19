@@ -362,10 +362,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.2.0.tgz#5f3d96ec6b2354ad6d8a28bf216a1d97b5426861"
   integrity sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==
 
-"@inquirer/checkbox@^2.3.11":
-  version "2.3.11"
-  resolved "https://registry.yarnpkg.com/@inquirer/checkbox/-/checkbox-2.3.11.tgz#8553afe548f0070aae228ea012bbc840bd3ff149"
-  integrity sha512-pCt02FZNLX9u8j/42n6iJyJnInbrvrygOfX+Fc4TcASbNRwNUcvhjxR2t49AdlmiO8oXAT3GhFH1T+2GpZPCfw==
+"@inquirer/checkbox@^2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@inquirer/checkbox/-/checkbox-2.4.0.tgz#c57589cd8e041869e2eac32f86788ac8d6e39f49"
+  integrity sha512-XHOCmntitRBD8SJcrv+6X9YakxO1wfsvezOnU5MBIXeTlSBRCVk9DOIrx6Cgi9BS3qkcy7oQb+fUGEKrP6xecQ==
   dependencies:
     "@inquirer/core" "^9.0.3"
     "@inquirer/figures" "^1.0.4"
@@ -449,11 +449,11 @@
     ansi-escapes "^4.3.2"
 
 "@inquirer/prompts@^5.0.2":
-  version "5.1.3"
-  resolved "https://registry.yarnpkg.com/@inquirer/prompts/-/prompts-5.1.3.tgz#7617aa5f2d522023cba62c8621bb7e7ed56e312a"
-  integrity sha512-CguIOxmb5RevOGgkPToKcfaogx2IfgLmIFDmAjqWwvh5DfRWYl5qp1wAMo4SyH0BGQRuxbchkYJr0x1BgB7AVg==
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@inquirer/prompts/-/prompts-5.2.0.tgz#824c9178a844b13883f3bf8cb9391e4a62279a0d"
+  integrity sha512-7jBWrlkvprEHEFw29zG/piw/M76c5/zYQWfi8ybHeyzcTuXkh1NjDQxLg2PiruvsIt36z1zvKM5yn7vbF0Yr/A==
   dependencies:
-    "@inquirer/checkbox" "^2.3.11"
+    "@inquirer/checkbox" "^2.4.0"
     "@inquirer/confirm" "^3.1.15"
     "@inquirer/editor" "^2.1.15"
     "@inquirer/expand" "^2.1.15"
@@ -461,7 +461,7 @@
     "@inquirer/number" "^1.0.3"
     "@inquirer/password" "^2.1.15"
     "@inquirer/rawlist" "^2.1.15"
-    "@inquirer/select" "^2.3.11"
+    "@inquirer/select" "^2.4.0"
 
 "@inquirer/rawlist@^2.1.15":
   version "2.1.15"
@@ -472,10 +472,10 @@
     "@inquirer/type" "^1.5.0"
     yoctocolors-cjs "^2.1.2"
 
-"@inquirer/select@^2.3.11":
-  version "2.3.11"
-  resolved "https://registry.yarnpkg.com/@inquirer/select/-/select-2.3.11.tgz#e17fc324758571557beb373c7d3b95dd136d090e"
-  integrity sha512-DebGErUSCyzwIP2zx3hs1X4TAzxSl/yNHzuYGE6KFkHq3ubg+5dJZacFxN1C1eBkJvQ0XBWGpY6MTzHsJbxkpw==
+"@inquirer/select@^2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@inquirer/select/-/select-2.4.0.tgz#88e6063c55c6c7c487a414564ee6e956c550a8f7"
+  integrity sha512-iU1eRkHirVNs43zWk6anMIMKc7tCXlJ+I5DcpIV7JzMe+45TuPPOGGCgeGIkZ4xYJ3cXdFoh7GJpm84PNC8veg==
   dependencies:
     "@inquirer/core" "^9.0.3"
     "@inquirer/figures" "^1.0.4"
@@ -1405,9 +1405,9 @@ buffer@^6.0.3:
     ieee754 "^1.2.1"
 
 bullmq@^5.8.0:
-  version "5.10.0"
-  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.10.0.tgz#ba00a7f9c6ef77b0586026fee7018f1a0ba9d18d"
-  integrity sha512-bu8lGvgXLwMhBrKeE0ntH+IWBZFVISJBm5njYtPL8u9Qm3AekEONinKRftiIP66r/Y45ljxg9dp9EahoJ6L9wA==
+  version "5.10.1"
+  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.10.1.tgz#66ff8d5835906bb608a440919e2d0956e5f9499f"
+  integrity sha512-YSRRua/Heol8++QB1HVovJxKZ/+RXziG+1XW3c0k1TwKRG4E4oqYB8uI6D/7tbEvivTRcpixPJ3+IhsvvnHgxA==
   dependencies:
     cron-parser "^4.6.0"
     ioredis "^5.4.1"

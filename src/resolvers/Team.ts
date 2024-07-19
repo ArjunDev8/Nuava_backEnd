@@ -11,6 +11,7 @@ import {
 } from "../services/team";
 import { findCoachByID, UserEnum } from "../services/coach";
 import { COACH_ROLE } from "../constants";
+import { getLineUps } from "../services/tournament";
 
 const TournamentResolvers: IResolvers = {
   Query: {
@@ -87,6 +88,32 @@ const TournamentResolvers: IResolvers = {
         });
 
         return players;
+      } catch (err: any) {
+        throw new ApolloError(err.message);
+      }
+    },
+
+    getLineUps: async (_, { fixtureId }, { auth }) => {
+      try {
+        verifyJWTToken(auth, process.env.JWT_SECRET_KEY as string);
+
+        // Assuming getLineups is a service function that returns lineups
+        const resultData = await getLineUps(fixtureId);
+
+        const teams = Array.from(resultData.entries()).map(
+          ([teamId, teamData]) => {
+            return {
+              teamID: teamId,
+              name: teamData.name,
+              students: teamData.students.map((studentOnTeam: any) => ({
+                id: studentOnTeam.student.id,
+                name: studentOnTeam.student.name,
+                age: studentOnTeam.student.age,
+              })),
+            };
+          }
+        );
+        return teams;
       } catch (err: any) {
         throw new ApolloError(err.message);
       }

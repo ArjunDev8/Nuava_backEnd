@@ -29,3 +29,15 @@ input EditTeamInput {
   typeOfSport: typeOfSport
   players: [Int]
 }
+
+type StudentOnTeam {
+  id: ID!
+  name: String!
+  age: Int!
+}
+
+type TeamOfFixture {
+  teamID: ID!
+  name: String!
+  students: [StudentOnTeam!]!
+}
