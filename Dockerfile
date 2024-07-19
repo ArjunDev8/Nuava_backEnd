@@ -13,7 +13,7 @@ COPY package.json yarn.lock ./
 USER node
 
 # Install dependencies including devDependencies
-RUN yarn install --frozen-lockfile
+RUN yarn install 
 
 # Bundle app source
 COPY --chown=node:node . .
