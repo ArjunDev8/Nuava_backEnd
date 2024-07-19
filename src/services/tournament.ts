@@ -665,6 +665,62 @@ export const getAllFixturesOfTournament = async (tournamentId: number) => {
   }
 };
 
+export const getAllFixtureForSchool = async (schoolId: number) => {
+  try {
+    const tournaments = await prisma.tournament.findMany({
+      where: {
+        organizingSchoolId: schoolId,
+      },
+    });
+
+    if (!tournaments) {
+      throw new ApolloError("No tournaments found for the school");
+    }
+
+    const allFixturesFortheTournaments = await Promise.all(
+      tournaments.map(async (tournament) => {
+        const fixtures = await prisma.fixture.findMany({
+          where: {
+            tournamentID: tournament.id,
+          },
+          include: {
+            teamParticipation1: {
+              include: {
+                team: true,
+              },
+            },
+            teamParticipation2: {
+              include: {
+                team: true,
+              },
+            },
+          },
+        });
+
+        // Map fixtures to include team names instead of teamParticipation objects
+        const fixturesWithTeamNames = fixtures.map((fixture) => ({
+          ...fixture,
+          team1: fixture.teamParticipation1.team.name,
+          team2: fixture.teamParticipation2.team.name,
+        }));
+
+        return {
+          tournamentName: tournament.name,
+          fixtures: fixturesWithTeamNames,
+        };
+      })
+    );
+
+    console.log(allFixturesFortheTournaments, "FIXTURES");
+
+    return allFixturesFortheTournaments;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+console.log(getAllFixtureForSchool(6));
+
 export const getBracket = async (tournamentId: number) => {
   try {
     const tournament = await prisma.tournament.findFirst({

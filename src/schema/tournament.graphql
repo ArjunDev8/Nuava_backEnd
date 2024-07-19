@@ -230,3 +230,26 @@ type MatchDetailsAndScore {
   teamDetails: [MatchDetailsAndScoreForTeam]!
   score: String!
 }
+
+type Fixture {
+  id: Int!
+  location: String!
+  teamParticipationId1: Int!
+  teamParticipationId2: Int!
+  tournamentID: Int!
+  isBye: Boolean!
+  startDate: String!
+  endDate: String!
+  round: Int!
+  winnerID: Int
+  team1: String!
+  team2: String!
+  status: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type FixturesData {
+  tournamentName: String!
+  fixtures: [Fixture]!
+}

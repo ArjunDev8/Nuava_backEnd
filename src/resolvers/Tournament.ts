@@ -11,6 +11,7 @@ import {
   editEvent,
   editTournament,
   getAllEvents,
+  getAllFixtureForSchool,
   getAllInterHouseEvents,
   getAllTournaments,
   getBracket,
@@ -169,6 +170,34 @@ const TournamentResolvers: IResolvers = {
         return matchDetails;
       } catch (err: any) {
         console.log("Error in getMatchDetailsAndScore resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    getAllFixturesForSchool: async (_, { schoolId }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        let user = null;
+
+        if (role === UserEnum.COACH) {
+          user = await findCoachByID(id);
+        } else {
+          user = await findStudentByID(id);
+        }
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const fixtures = await getAllFixtureForSchool(user.schoolID);
+
+        return fixtures;
+      } catch (err: any) {
+        console.log("Error in getAllFixturesForSchool resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

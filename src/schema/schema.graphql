@@ -13,6 +13,8 @@ type Query {
 
   getLineUps(fixtureId: ID!): [TeamOfFixture!]!
   getMatchDetailsAndScore(fixtureId: ID!): MatchDetailsAndScore!
+
+  getAllFixturesForSchool(schoolId: Int!): [FixturesData]
 }
 
 type Mutation {
