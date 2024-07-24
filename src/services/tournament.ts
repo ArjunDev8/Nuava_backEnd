@@ -11,8 +11,10 @@ import {
 import { typesOfSport } from "./team";
 import {
   BYESOPPONENT,
+  FIXTURE_STATUS_LIVE,
   FIXURE_EVENT,
   INTER_HOUSE_EVENT,
+  MATCH_RESULT_CONFIRMATION_STATUS,
   NORMAL_EVENT,
 } from "../constants";
 import { areTournamentDaysValid } from "../helper/utils";
@@ -184,6 +186,9 @@ export const editTournament = async (
     const tournament = await prisma.tournament.findFirst({
       where: {
         id: tournamentID,
+        status: {
+          not: "DELETED",
+        },
       },
     });
 
@@ -633,6 +638,9 @@ export const getTournament = async (tournamentId: number) => {
     const tournament = await prisma.tournament.findFirst({
       where: {
         id: tournamentId,
+        status: {
+          not: "DELETED",
+        },
       },
     });
 
@@ -670,6 +678,9 @@ export const getAllFixtureForSchool = async (schoolId: number) => {
     const tournaments = await prisma.tournament.findMany({
       where: {
         organizingSchoolId: schoolId,
+        status: {
+          not: "DELETED",
+        },
       },
     });
 
@@ -724,6 +735,9 @@ export const getAllLiveMatches = async (schoolId: number) => {
     const tournaments = await prisma.tournament.findMany({
       where: {
         organizingSchoolId: schoolId,
+        status: {
+          not: "DELETED",
+        },
       },
     });
 
@@ -736,7 +750,7 @@ export const getAllLiveMatches = async (schoolId: number) => {
         const fixtures = await prisma.fixture.findMany({
           where: {
             tournamentID: tournament.id,
-            status: "live",
+            status: FIXTURE_STATUS_LIVE,
           },
           include: {
             teamParticipation1: {
@@ -777,6 +791,9 @@ export const getBracket = async (tournamentId: number) => {
     const tournament = await prisma.tournament.findFirst({
       where: {
         id: tournamentId,
+        status: {
+          not: "DELETED",
+        },
       },
       include: {
         fixtures: {
@@ -941,6 +958,9 @@ export const deleteFixture = async (fixtureId: number, coach: Coach) => {
             id: fixtureId,
           },
         },
+        status: {
+          not: "DELETED",
+        },
       },
     });
 
@@ -989,8 +1009,102 @@ export const deleteFixture = async (fixtureId: number, coach: Coach) => {
     throw err;
   }
 };
+// fixtureId: Int!
+// fixtureStartTime: String!
+// fixtureEndTime: String!
+// fixtureLocation: String!
+export const editFixture = async ({
+  fixtureId,
+  fixtureStartTime,
+  fixtureEndTime,
+  fixtureLocation,
+}: {
+  fixtureId?: number;
+  fixtureStartTime?: Date;
+  fixtureEndTime?: Date;
+  fixtureLocation?: string;
+}) => {
+  try {
+    const fixture = await prisma.fixture.findFirst({
+      where: {
+        id: fixtureId,
+      },
+    });
+
+    if (!fixture) {
+      throw new ApolloError("Fixture not found");
+    }
+
+    const updatedFixture = await prisma.fixture.update({
+      where: {
+        id: fixtureId,
+      },
+      data: {
+        startDate: fixtureStartTime,
+        endDate: fixtureEndTime,
+        location: fixtureLocation,
+      },
+    });
+
+    return updatedFixture;
+  } catch (err: any) {
+    throw err;
+  }
+};
 
 //DELETE TOURNAMENT
+// export const deleteTournament = async (tournamentId: number, coach: Coach) => {
+//   try {
+//     const tournament = await prisma.tournament.findFirst({
+//       where: {
+//         id: tournamentId,
+//       },
+//       include: {
+//         fixtures: true,
+//       },
+//     });
+
+//     if (!tournament) {
+//       throw new ApolloError("Tournament not found");
+//     }
+//     console.log(coach.id, tournament.organizerCoachId, tournamentId);
+
+//     if (coach.id !== tournament.organizerCoachId) {
+//       throw new ApolloError("You are not authorized to delete this tournament");
+//     }
+
+//     const fixtureIDs = tournament.fixtures.map((fixture) => fixture.id);
+
+//     const events = await prisma.events.findMany();
+
+//     const eventsToDelete = events.filter((event: any) =>
+//       fixtureIDs.includes(event.details.fixtureID)
+//     );
+
+//     const deleteEvents = eventsToDelete.map((event) =>
+//       prisma.events.delete({
+//         where: {
+//           id: event.id,
+//         },
+//       })
+//     );
+
+//     await prisma.$transaction([
+//       prisma.tournament.delete({
+//         where: {
+//           id: tournamentId,
+//         },
+//       }),
+
+//       ...deleteEvents,
+//     ]);
+
+//     return tournament;
+//   } catch (err: any) {
+//     throw err;
+//   }
+// };
+
 export const deleteTournament = async (tournamentId: number, coach: Coach) => {
   try {
     const tournament = await prisma.tournament.findFirst({
@@ -1005,44 +1119,26 @@ export const deleteTournament = async (tournamentId: number, coach: Coach) => {
     if (!tournament) {
       throw new ApolloError("Tournament not found");
     }
-    console.log(coach.id, tournament.organizerCoachId, tournamentId);
 
     if (coach.id !== tournament.organizerCoachId) {
       throw new ApolloError("You are not authorized to delete this tournament");
     }
 
-    const fixtureIDs = tournament.fixtures.map((fixture) => fixture.id);
+    // Update the status of the tournament to 'DELETED'
+    const updatedTournament = await prisma.tournament.update({
+      where: {
+        id: tournamentId,
+      },
+      data: {
+        status: "DELETED",
+      },
+    });
 
-    const events = await prisma.events.findMany();
-
-    const eventsToDelete = events.filter((event: any) =>
-      fixtureIDs.includes(event.details.fixtureID)
-    );
-
-    const deleteEvents = eventsToDelete.map((event) =>
-      prisma.events.delete({
-        where: {
-          id: event.id,
-        },
-      })
-    );
-
-    await prisma.$transaction([
-      prisma.tournament.delete({
-        where: {
-          id: tournamentId,
-        },
-      }),
-
-      ...deleteEvents,
-    ]);
-
-    return tournament;
+    return updatedTournament;
   } catch (err: any) {
     throw err;
   }
 };
-
 // input CreateEventInput {
 //   title: String!
 //   startDate: String!
@@ -1325,7 +1421,7 @@ export const startFixture = async (fixtureId: number) => {
           id: fixtureId,
         },
         data: {
-          status: "live",
+          status: FIXTURE_STATUS_LIVE,
         },
       });
       await prisma.matchResult.create({
@@ -1334,7 +1430,7 @@ export const startFixture = async (fixtureId: number) => {
           homeTeamScore: "0",
           awayTeamScore: "0",
           finalScore: "0-0",
-          confirmationStatus: "PENDING",
+          confirmationStatus: MATCH_RESULT_CONFIRMATION_STATUS,
           homeTeam: {
             connect: {
               id: fixture.teamParticipationId1,

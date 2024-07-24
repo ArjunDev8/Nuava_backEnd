@@ -7,6 +7,7 @@ type Query {
   getAllStudents: [Student]
   getAllAvailablePlayers(input: AvailablePlayersInput!): [Student]
   getBrackets(input: GetBracketsInput!): [Bracket]
+  getBracketsWithoutAuth(input: GetBracketsInput!): [Bracket]
   getAllEvents: [Event]
   getAllCoaches: [Coach]
   getAllInterHouseEvents: [Event]

@@ -9,6 +9,7 @@ import {
   deleteFixture,
   deleteTournament,
   editEvent,
+  editFixture,
   editTournament,
   getAllEvents,
   getAllFixtureForSchool,
@@ -77,6 +78,20 @@ const TournamentResolvers: IResolvers = {
           throw new Error("User not found");
         }
 
+        const { tournamentId } = input;
+        console.log(tournamentId, "tournament");
+
+        const tournament = await getBracket(tournamentId);
+
+        return tournament;
+      } catch (err: any) {
+        console.log("Error in getBracket resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    getBracketsWithoutAuth: async (_, { input }) => {
+      try {
         const { tournamentId } = input;
         console.log(tournamentId, "tournament");
 
@@ -395,6 +410,43 @@ const TournamentResolvers: IResolvers = {
         };
       } catch (err: any) {
         console.log("Error in deleteFixture resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    editFixture: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        if (role !== UserEnum.COACH) {
+          throw new Error("Unauthorized to delete fixture");
+        }
+
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const { fixtureId, fixtureStartTime, fixtureEndTime, fixtureLocation } =
+          input;
+        // Delete fixture
+        await editFixture({
+          fixtureId,
+          fixtureStartTime,
+          fixtureEndTime,
+          fixtureLocation,
+        });
+
+        return {
+          status: true,
+          message: "Fixture edited successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in edited resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

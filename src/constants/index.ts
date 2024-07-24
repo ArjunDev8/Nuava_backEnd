@@ -29,3 +29,9 @@ export const BYESOPPONENT = -999;
 export const NORMAL_EVENT = "Normal Event";
 export const INTER_HOUSE_EVENT = "Inter House Event";
 export const FIXURE_EVENT = "Fixture Event";
+
+export const FIXTURE_STATUS_LIVE = "live";
+export const FIXTURE_STATUS_COMPLETED = "completed";
+export const FIXTURE_STATUS_PENDING = "pending";
+
+export const MATCH_RESULT_CONFIRMATION_STATUS = "PENDING";

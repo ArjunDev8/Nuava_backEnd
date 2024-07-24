@@ -3223,6 +3223,20 @@
           "maxLength": null
         },
         {
+          "id": "public.Tournament.status",
+          "name": "status",
+          "columnName": "status",
+          "type": "text",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": true,
+          "isId": false,
+          "maxLength": null
+        },
+        {
           "name": "School",
           "type": "School",
           "isRequired": true,

@@ -4,6 +4,7 @@ import {
   checkPassword,
   checkStudentExists,
   findOTPRecord,
+  findStudentByID,
   invalidateOTPs,
   verifyJWTToken,
 } from "../services/student";
@@ -83,17 +84,21 @@ const CoachResolvers: IResolvers = {
           process.env.JWT_SECRET_KEY as string
         );
 
-        if (role !== COACH_ROLE) {
-          throw new Error("Unauthorized to get coaches");
+        console.log("id", id, role);
+
+        let user = null;
+
+        if (role === UserEnum.COACH) {
+          user = await findCoachByID(id);
+        } else {
+          user = await findStudentByID(id);
         }
 
-        const coach = await findCoachByID(id);
-
-        if (!coach) {
-          throw new Error("Coach not found");
+        if (!user) {
+          throw new Error("User not found");
         }
 
-        const coaches = await getAllCoaches({ schoolID: coach.schoolID });
+        const coaches = await getAllCoaches({ schoolID: user.schoolID });
 
         return coaches;
       } catch (err: any) {
