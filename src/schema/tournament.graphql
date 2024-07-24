@@ -181,6 +181,11 @@ input EditInterHouseEventInput {
 input StartFixtureInput {
   fixtureId: Int!
 }
+
+input EndFixtureInput {
+  fixtureId: Int!
+}
+
 input FixtureUpdatesInput {
   fixtureId: Int!
   eventType: EventType!
@@ -202,7 +207,7 @@ enum EventType {
 }
 
 input ScoreUpdatesInput {
-  fixtureIds: [Int!]!
+  fixtureId: Int!
 }
 
 type ScoreUpdatesResponse {

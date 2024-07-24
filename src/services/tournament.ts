@@ -11,6 +11,7 @@ import {
 import { typesOfSport } from "./team";
 import {
   BYESOPPONENT,
+  FIXTURE_STATUS_COMPLETED,
   FIXTURE_STATUS_LIVE,
   FIXURE_EVENT,
   INTER_HOUSE_EVENT,
@@ -716,6 +717,7 @@ export const getAllFixtureForSchool = async (schoolId: number) => {
         }));
 
         return {
+          id: tournament.id,
           tournamentName: tournament.name,
           fixtures: fixturesWithTeamNames,
         };
@@ -1373,7 +1375,7 @@ export const getAllTournaments = async (schoolId: number) => {
       },
     });
 
-    console.log(tournaments);
+    console.log(tournaments, "Tou");
 
     if (!tournaments) {
       throw new Error("No tournaments found");
@@ -1446,6 +1448,46 @@ export const startFixture = async (fixtureId: number) => {
 
       return updatedFixture;
     });
+    return result;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const endFixture = async (fixtureId: number) => {
+  try {
+    const result = await prisma.$transaction(async (prisma) => {
+      const fixture = await prisma.fixture.findFirst({
+        where: {
+          id: fixtureId,
+        },
+      });
+
+      if (!fixture) {
+        throw new ApolloError("Fixture not found");
+      }
+
+      const updatedFixture = await prisma.fixture.update({
+        where: {
+          id: fixtureId,
+        },
+        data: {
+          status: FIXTURE_STATUS_COMPLETED,
+        },
+      });
+
+      await prisma.matchResult.updateMany({
+        where: {
+          fixtureID: fixtureId,
+        },
+        data: {
+          confirmationStatus: MATCH_RESULT_CONFIRMATION_STATUS,
+        },
+      });
+
+      return updatedFixture;
+    });
+
     return result;
   } catch (err: any) {
     throw err;
@@ -1542,7 +1584,7 @@ export const logFixtureUpdate = async ({
         });
       }
 
-      pubsub.publish("SCORE_UPDATE_1", {
+      pubsub.publish(`SCORE_UPDATE_${fixtureId}`, {
         scoreUpdates: {
           fixtureId: fixtureId,
           eventType: eventType,

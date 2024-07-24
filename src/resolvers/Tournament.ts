@@ -239,6 +239,8 @@ const TournamentResolvers: IResolvers = {
           throw new Error("User not found");
         }
 
+        console.log("user", user.schoolID);
+
         const fixtures = await getAllFixtureForSchool(user.schoolID);
 
         return fixtures;
@@ -693,11 +695,8 @@ const TournamentResolvers: IResolvers = {
   },
   Subscription: {
     scoreUpdates: {
-      subscribe: (_, { fixtureIDs }) => {
-        return pubsub.asyncIterator(
-          // fixtureIDs.map((id: number) => `SCORE_UPDATE_${id}`)
-          "SCORE_UPDATE_1"
-        );
+      subscribe: (_, { fixtureID }) => {
+        return pubsub.asyncIterator(`SCORE_UPDATE_${fixtureID}`);
       },
     },
   },

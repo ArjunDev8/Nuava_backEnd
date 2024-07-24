@@ -54,6 +54,7 @@ type Mutation {
   editInterHouseEvent(input: EditInterHouseEventInput!): Result!
 
   startFixture(input: StartFixtureInput!): Result!
+  endFixture(input: EndFixtureInput!): Result!
   fixtureUpdates(input: FixtureUpdatesInput!): Result!
 }
 
