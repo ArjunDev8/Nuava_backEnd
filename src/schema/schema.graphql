@@ -56,6 +56,8 @@ type Mutation {
   startFixture(input: StartFixtureInput!): Result!
   endFixture(input: EndFixtureInput!): Result!
   fixtureUpdates(input: FixtureUpdatesInput!): Result!
+
+  makeStudentMorderator(input: MakeStudentModeratorInput!): Result!
 }
 
 type Subscription {

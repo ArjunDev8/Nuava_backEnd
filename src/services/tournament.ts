@@ -1721,6 +1721,33 @@ export const getLineUps = async (fixtureId: number) => {
   }
 };
 
+export const makeStudentModerator = async (studentId: number) => {
+  try {
+    const student = await prisma.student.findFirst({
+      where: {
+        id: studentId,
+      },
+    });
+
+    if (!student) {
+      throw new ApolloError("Student not found");
+    }
+
+    const updatedStudent = await prisma.student.update({
+      where: {
+        id: studentId,
+      },
+      data: {
+        moderatorAccess: true,
+      },
+    });
+
+    return updatedStudent;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
 // type CardsGivenTo {
 //   playerId: Int!
 //   playerName: String!

@@ -210,6 +210,10 @@ input ScoreUpdatesInput {
   fixtureId: Int!
 }
 
+input MakeStudentModeratorInput {
+  studentId: Int!
+}
+
 type ScoreUpdatesResponse {
   fixtureId: Int!
   eventType: EventType!

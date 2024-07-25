@@ -130,6 +130,47 @@ const CoachResolvers: IResolvers = {
       }
     },
 
+    makeStudentMorderator: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        if (role !== COACH_ROLE) {
+          throw new Error("Unauthorized to make student moderator");
+        }
+
+        const { studentID } = input;
+
+        const coach = await findCoachByID(id);
+
+        if (!coach) {
+          throw new Error("Coach not found");
+        }
+
+        const student = await findStudentByID(studentID);
+
+        if (!student) {
+          throw new Error("Student not found");
+        }
+
+        if (student.schoolID !== coach.schoolID) {
+          throw new Error("Student does not belong to the same school");
+        }
+
+        await makeStudentModerator(studentID);
+
+        return {
+          status: true,
+          message: "Student is now a moderator",
+        };
+      } catch (err: any) {
+        console.log("Error in makeStudentMorderator resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    }
+
     verifyCoachEmailOTP: async (_, { input }) => {
       try {
         const { email, otp } = input;
