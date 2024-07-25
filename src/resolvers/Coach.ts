@@ -26,6 +26,7 @@ import {
 import { COACH_ROLE, OTP_PURPOSE_REGISTER } from "../constants";
 import { generateJWTToken, hashedPassword } from "../helper/utils";
 import { emailQueue, getEmailTemplate } from "../services/email";
+import { makeStudentModerator } from "../services/tournament";
 
 const CoachResolvers: IResolvers = {
   Query: {
@@ -169,7 +170,7 @@ const CoachResolvers: IResolvers = {
         console.log("Error in makeStudentMorderator resolver: ", err.message);
         throw new ApolloError(err.message);
       }
-    }
+    },
 
     verifyCoachEmailOTP: async (_, { input }) => {
       try {
