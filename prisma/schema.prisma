@@ -109,12 +109,12 @@ model Team {
 }
 
 model Fixture {
-  id                   Int               @id @default(autoincrement())
+  id                   Int                @id @default(autoincrement())
   location             String
-  teamParticipationId1 Int
-  teamParticipation1   TeamParticipation @relation("TeamParticipationToFixture1", fields: [teamParticipationId1], references: [id])
-  teamParticipationId2 Int
-  teamParticipation2   TeamParticipation @relation("TeamParticipationToFixture2", fields: [teamParticipationId2], references: [id])
+  teamParticipationId1 Int?
+  teamParticipation1   TeamParticipation? @relation("TeamParticipationToFixture1", fields: [teamParticipationId1], references: [id])
+  teamParticipationId2 Int?
+  teamParticipation2   TeamParticipation? @relation("TeamParticipationToFixture2", fields: [teamParticipationId2], references: [id])
   tournamentID         Int
 
   isBye     Boolean     @default(false)
@@ -126,10 +126,10 @@ model Fixture {
   scoreLog  ScoreLog[]
   teamScore TeamScore[]
 
-  tournament Tournament @relation(fields: [tournamentID], references: [id], onDelete: Cascade)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  tournament         Tournament @relation(fields: [tournamentID], references: [id], onDelete: Cascade)
+  fixtureStartStatus String     @default("notStarted")
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime?  @updatedAt
 }
 
 model StatMetric {

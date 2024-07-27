@@ -11,6 +11,7 @@ import {
   editEvent,
   editFixture,
   editTournament,
+  endFixture,
   getAllEvents,
   getAllFixtureForSchool,
   getAllInterHouseEvents,
@@ -642,6 +643,43 @@ const TournamentResolvers: IResolvers = {
         };
       } catch (err: any) {
         console.log("Error in startFixture resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    endFixture: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const { fixtureId, winnerID } = input;
+
+        console.log("id", id, role);
+
+        // if (role !== UserEnum.COACH) {
+        //   throw new Error("Unauthorized to end fixture");
+        // }
+
+        const coach = await findCoachByID(id);
+        const student = await findStudentByID(id);
+
+        if (!coach || !student) {
+          throw new Error("User not found");
+        }
+
+        if (role === UserEnum.STUDENT && student.moderatorAccess === false) {
+          throw new Error("Unauthorized to end fixture");
+        }
+
+        await endFixture(fixtureId, winnerID);
+
+        return {
+          status: true,
+          message: "Fixture ended successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in endFixture resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

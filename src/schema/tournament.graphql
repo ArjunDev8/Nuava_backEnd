@@ -117,10 +117,10 @@ type Bracket {
 }
 
 type Participant {
-  id: ID!
-  name: String!
+  id: ID
+  name: String
   resultText: String # 'WON' or null
-  isWinner: Boolean!
+  isWinner: Boolean
   status: String # 'PLAYED' | 'NO_SHOW' | 'WALK_OVER' | 'NO_PARTY' | null
 }
 
@@ -184,6 +184,7 @@ input StartFixtureInput {
 
 input EndFixtureInput {
   fixtureId: Int!
+  winnerID: Int!
 }
 
 input FixtureUpdatesInput {

@@ -30,6 +30,9 @@ export const NORMAL_EVENT = "Normal Event";
 export const INTER_HOUSE_EVENT = "Inter House Event";
 export const FIXURE_EVENT = "Fixture Event";
 
+export const FIXTURE_STATUS_NOT_STARTED = "notStarted";
+export const FIXTURE_STATUS_STARTED = "started";
+
 export const FIXTURE_STATUS_LIVE = "live";
 export const FIXTURE_STATUS_COMPLETED = "completed";
 export const FIXTURE_STATUS_PENDING = "pending";

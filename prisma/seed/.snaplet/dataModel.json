@@ -670,7 +670,7 @@
           "name": "teamParticipationId1",
           "columnName": "teamParticipationId1",
           "type": "int4",
-          "isRequired": true,
+          "isRequired": false,
           "kind": "scalar",
           "isList": false,
           "isGenerated": false,
@@ -684,7 +684,7 @@
           "name": "teamParticipationId2",
           "columnName": "teamParticipationId2",
           "type": "int4",
-          "isRequired": true,
+          "isRequired": false,
           "kind": "scalar",
           "isList": false,
           "isGenerated": false,
@@ -708,9 +708,23 @@
           "maxLength": null
         },
         {
+          "id": "public.Fixture.fixtureStartStatus",
+          "name": "fixtureStartStatus",
+          "columnName": "fixtureStartStatus",
+          "type": "text",
+          "isRequired": true,
+          "kind": "scalar",
+          "isList": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": true,
+          "isId": false,
+          "maxLength": null
+        },
+        {
           "name": "TeamParticipation_Fixture_teamParticipationId1ToTeamParticipation",
           "type": "TeamParticipation",
-          "isRequired": true,
+          "isRequired": false,
           "kind": "object",
           "relationName": "Fixture_teamParticipationId1ToTeamParticipation",
           "relationFromFields": [
@@ -728,7 +742,7 @@
         {
           "name": "TeamParticipation_Fixture_teamParticipationId2ToTeamParticipation",
           "type": "TeamParticipation",
-          "isRequired": true,
+          "isRequired": false,
           "kind": "object",
           "relationName": "Fixture_teamParticipationId2ToTeamParticipation",
           "relationFromFields": [
