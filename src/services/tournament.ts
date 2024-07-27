@@ -897,12 +897,13 @@ export const getBracket = async (tournamentId: number) => {
       const team1 = fixture.teamParticipation1?.team;
       const team2 = fixture.teamParticipation2?.team;
 
+      console.log(fixture.winnerID, fixture.teamParticipation1, "FIXTURE DATA");
       const team1IsWinner = fixture.isBye
         ? true
-        : fixture.winnerID === fixture.teamParticipation1?.teamId;
+        : fixture.winnerID === fixture.teamParticipationId1;
       const team2IsWinner = fixture.isBye
         ? false
-        : fixture.winnerID === fixture.teamParticipation2?.teamId;
+        : fixture.winnerID === fixture.teamParticipationId2;
 
       return {
         id: fixture.id,
@@ -915,18 +916,18 @@ export const getBracket = async (tournamentId: number) => {
         state: fixture.isBye ? "DONE" : fixture.winnerID ? "DONE" : "PENDING", // If it's a bye or a winner is set, the state is "DONE". Otherwise, it's "PENDING".
         participants: [
           {
-            id: team1 ? team1.id.toString() : null,
-            name: team1 ? team1.name : "TBD",
-            resultText: team1IsWinner ? "WON" : null, // If team 1 is the winner, set the result text to "WON".
+            id: team1 ? fixture.teamParticipationId1?.toString() : null,
+            name: team1 ? team1.name : null,
+            resultText: team1IsWinner ? "WON" : "LOST", // If team 1 is the winner, set the result text to "WON".
             isWinner: team1IsWinner,
-            status: fixture.isBye ? "WALK_OVER" : null, // If it's a bye, set the status to "WALK_OVER". Otherwise, you need to determine how to set this.
+            status: fixture.isBye ? "WALK_OVER" : "NORMAL", // If it's a bye, set the status to "WALK_OVER". Otherwise, you need to determine how to set this.
           },
           {
-            id: team2 ? team2.id.toString() : null,
-            name: team2 ? team2.name : "TBD",
-            resultText: team2IsWinner ? "WON" : null, // If team 2 is the winner, set the result text to "WON".
+            id: team2 ? fixture.teamParticipationId2?.toString() : null,
+            name: team2 ? team2.name : null,
+            resultText: team2IsWinner ? "WON" : "LOST", // If team 2 is the winner, set the result text to "WON".
             isWinner: team2IsWinner,
-            status: fixture.isBye ? "NO_PARTY" : null, // If it's a bye, set the status to "NO_PARTY"
+            status: fixture.isBye ? "NO_PARTY" : "NORMAL", // If it's a bye, set the status to "NO_PARTY"
           },
         ],
       };
