@@ -662,6 +662,8 @@ const TournamentResolvers: IResolvers = {
         // }
 
         const coach = await findCoachByID(id);
+
+        console.log(coach, "THIS IS COACH");
         const student = await findStudentByID(id);
 
         if (!coach || !student) {
