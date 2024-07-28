@@ -449,7 +449,7 @@ export const createFixtures = async ({
     if (allTeamsFromParticipatingSchool.length === 0) {
       const dummyTeam = await transaction.team.create({
         data: {
-          name: `DummyTeam${schoolId.id}`,
+          name: `${schoolId.name}`,
           schoolID: schoolId.id,
           typeOfSport: "FOOTBALL",
           coachID: coach.id,
