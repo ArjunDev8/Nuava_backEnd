@@ -1842,6 +1842,8 @@ export const logFixtureUpdate = async ({
         });
       }
 
+      console.log(fixtureId, "FIXTURE ID");
+
       pubsub.publish(`SCORE_UPDATE_${fixtureId}`, {
         scoreUpdates: {
           fixtureId: fixtureId,

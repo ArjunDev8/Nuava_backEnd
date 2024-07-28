@@ -115,7 +115,7 @@ const main = async () => {
     // Create a dummy team for the dummy school
     const dummyTeam = await prisma.team.create({
       data: {
-        name: "DummyTeam",
+        name: "Team",
         schoolID: dummySchool.id,
         coachID: dummyCoach.id,
         typeOfSport: "Football",
