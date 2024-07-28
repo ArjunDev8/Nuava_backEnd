@@ -666,11 +666,11 @@ const TournamentResolvers: IResolvers = {
         console.log(coach, "THIS IS COACH");
         const student = await findStudentByID(id);
 
-        if (!coach || !student) {
-          throw new Error("User not found");
-        }
+        // if (!coach || !student) {
+        //   throw new Error("User not found");
+        // }
 
-        if (role === UserEnum.STUDENT && student.moderatorAccess === false) {
+        if (role === UserEnum.STUDENT && student?.moderatorAccess === false) {
           throw new Error("Unauthorized to end fixture");
         }
 
