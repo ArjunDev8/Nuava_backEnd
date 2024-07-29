@@ -735,8 +735,9 @@ const TournamentResolvers: IResolvers = {
   },
   Subscription: {
     scoreUpdates: {
-      subscribe: (_, { fixtureID }) => {
-        return pubsub.asyncIterator(`SCORE_UPDATE_${fixtureID}`);
+      subscribe: (_, { input }) => {
+        const { fixtureId } = input;
+        return pubsub.asyncIterator(`SCORE_UPDATE_${fixtureId}`);
       },
     },
   },

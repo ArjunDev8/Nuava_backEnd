@@ -911,6 +911,7 @@ export const getBracket = async (tournamentId: number) => {
         nextMatchId: tournament.fixtures[index + 1]
           ? tournament.fixtures[index + 1].id
           : null,
+        matchStatus: fixture.status,
         tournamentRoundText: `Round ${fixture.round}`, // Using the round field to determine the round text
         startTime: fixture.startDate.toISOString(),
         state: fixture.isBye ? "DONE" : fixture.winnerID ? "DONE" : "PENDING", // If it's a bye or a winner is set, the state is "DONE". Otherwise, it's "PENDING".
@@ -1540,174 +1541,213 @@ export const startFixture = async (fixtureId: number) => {
 //   connection: redisConnection,
 // });
 
+const checkIfFixtureCanBeEnded = async (fixtureId: number) => {
+  try {
+    const fixture = await prisma.fixture.findMany({
+      where: {
+        id: fixtureId,
+      },
+    });
+
+    return true;
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const endFixture = async (fixtureId: number, winnerId: number) => {
   try {
     // Find the fixture
-    const fixture = await prisma.fixture.findUnique({
-      where: { id: fixtureId },
-      include: { tournament: { include: { fixtures: true } } },
-    });
 
-    if (!fixture) {
-      throw new ApolloError("Fixture not found");
-    }
+    //CHECK IF THE FIXTURE CAN BE ENDED
 
-    console.log(fixture, "FIXTURE");
+    await checkIfFixtureCanBeEnded(fixtureId);
 
-    // Update the fixture with the winner
-    await prisma.fixture.update({
-      where: { id: fixtureId },
-      data: { winnerID: winnerId, isBye: false },
-    });
-
-    // Check if there are any remaining fixtures
-    const remainingFixtures = await prisma.fixture.count({
-      where: {
-        tournamentID: fixture.tournamentID,
-        winnerID: null,
-      },
-    });
-
-    console.log(remainingFixtures, "REMAINING FIXTURES");
-
-    if (remainingFixtures === 0) {
-      // If there are no remaining fixtures, update the tournament status to 'completed'
-      await prisma.tournament.update({
-        where: { id: fixture.tournamentID },
-        data: { status: "completed" },
+    const result = await prisma.$transaction(async (prisma) => {
+      const fixture = await prisma.fixture.findUnique({
+        where: { id: fixtureId },
+        include: { tournament: { include: { fixtures: true } } },
       });
-      return true;
-    }
 
-    const allFixtures = await prisma.fixture.findMany({
-      where: {
-        tournamentID: fixture.tournamentID,
-        round: fixture.round,
-      },
-      orderBy: {
-        id: "asc", // or some other property that determines the order of the fixtures
-      },
-    });
+      if (!fixture) {
+        throw new ApolloError("Fixture not found");
+      }
 
-    // Group the fixtures by 2
-    const groupedFixtures = [];
-    for (let i = 0; i < allFixtures.length; i += 2) {
-      groupedFixtures.push(allFixtures.slice(i, i + 2));
-    }
+      console.log(fixture, "FIXTURE");
 
-    console.log(groupedFixtures, "GROUPED FIXTURES");
-    // For each group, if the winner of the current fixture is in the group, create a new fixture with the winner and the other team in the group
-    for (const group of groupedFixtures) {
-      // Check if there is an existing fixture with a null value for teamParticipationId2
-      const existingFixture = await prisma.fixture.findFirst({
+      // Update the fixture with the winner
+      await prisma.fixture.update({
+        where: { id: fixtureId },
+        data: { winnerID: winnerId, isBye: false },
+      });
+
+      // Check if there are any remaining fixtures
+      const remainingFixtures = await prisma.fixture.count({
         where: {
           tournamentID: fixture.tournamentID,
-          round: fixture.round + 1,
-          teamParticipationId2: null,
-          NOT: {
-            isBye: true,
-          },
+          winnerID: null,
         },
       });
 
-      if (group.length < 2) {
-        if (existingFixture) {
-          await prisma.fixture.update({
-            where: { id: existingFixture.id },
-            data: {
-              teamParticipationId2: group[0].winnerID,
-              fixtureStartStatus: FIXTURE_STATUS_STARTED,
-            },
-          });
-          return existingFixture;
-        } else {
-          await prisma.fixture.create({
-            data: {
-              tournamentID: fixture.tournamentID,
-              teamParticipationId1: group[0].winnerID,
-              teamParticipationId2: null,
+      console.log(remainingFixtures, "REMAINING FIXTURES");
+
+      if (remainingFixtures === 0) {
+        // If there are no remaining fixtures, update the tournament status to 'completed'
+        await prisma.tournament.update({
+          where: { id: fixture.tournamentID },
+          data: { status: "completed" },
+        });
+        return true;
+      }
+
+      const allFixtures = await prisma.fixture.findMany({
+        where: {
+          tournamentID: fixture.tournamentID,
+          round: fixture.round,
+        },
+        orderBy: {
+          id: "asc", // or some other property that determines the order of the fixtures
+        },
+      });
+
+      const currentFixture = allFixtures.filter((el) => el.id === fixtureId);
+
+      // check if the the previous fixutre of current fixture has been finished only then end the current fixture
+
+      if (currentFixture.length > 0) {
+        const previousFixture = allFixtures.filter(
+          (el) => el.id === currentFixture[0].id - 1
+        );
+        if (
+          previousFixture.length > 0 &&
+          previousFixture[0].winnerID === null
+        ) {
+          throw new Error("Previous fixture has not been finished");
+        }
+      }
+
+      // Group the fixtures by 2
+      const groupedFixtures = [];
+      for (let i = 0; i < allFixtures.length; i += 2) {
+        groupedFixtures.push(allFixtures.slice(i, i + 2));
+      }
+
+      console.log(groupedFixtures, "GROUPED FIXTURES");
+      // For each group, if the winner of the current fixture is in the group, create a new fixture with the winner and the other team in the group
+      for (const group of groupedFixtures) {
+        // Check if there is an existing fixture with a null value for teamParticipationId2
+        const existingFixture = await prisma.fixture.findFirst({
+          where: {
+            tournamentID: fixture.tournamentID,
+            round: fixture.round + 1,
+            teamParticipationId2: null,
+            NOT: {
               isBye: true,
-              winnerID: group[0].winnerID,
-              round: fixture.round + 1,
-              fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
-              startDate: new Date(), // Set this to the appropriate date
-              endDate: new Date(), // Set this to the appropriate date
-              location: fixture.location, // Set this to the appropriate location
             },
-          });
+          },
+        });
 
-          await prisma.fixture.create({
-            data: {
-              tournamentID: fixture.tournamentID,
-              teamParticipationId1: group[0].winnerID,
-              teamParticipationId2: null,
-              winnerID: null,
-              round: fixture.round + 2,
-              fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
-              startDate: new Date(), // Set this to the appropriate date
-              endDate: new Date(), // Set this to the appropriate date
-              location: fixture.location, // Set this to the appropriate location
-            },
-          });
+        if (group.length < 2) {
+          if (existingFixture) {
+            await prisma.fixture.update({
+              where: { id: existingFixture.id },
+              data: {
+                teamParticipationId2: group[0].winnerID,
+                fixtureStartStatus: FIXTURE_STATUS_STARTED,
+              },
+            });
+            return existingFixture;
+          } else {
+            await prisma.fixture.create({
+              data: {
+                tournamentID: fixture.tournamentID,
+                teamParticipationId1: group[0].winnerID,
+                teamParticipationId2: null,
+                isBye: true,
+                winnerID: group[0].winnerID,
+                round: fixture.round + 1,
+                fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
+                startDate: new Date(), // Set this to the appropriate date
+                endDate: new Date(), // Set this to the appropriate date
+                location: fixture.location, // Set this to the appropriate location
+              },
+            });
 
-          return true;
+            await prisma.fixture.create({
+              data: {
+                tournamentID: fixture.tournamentID,
+                teamParticipationId1: group[0].winnerID,
+                teamParticipationId2: null,
+                winnerID: null,
+                round: fixture.round + 2,
+                fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
+                startDate: new Date(), // Set this to the appropriate date
+                endDate: new Date(), // Set this to the appropriate date
+                location: fixture.location, // Set this to the appropriate location
+              },
+            });
+
+            return true;
+          }
+        }
+
+        const fixture1 = group[0];
+        const fixture2 = group[1];
+
+        if (fixture1.isBye) {
+          continue;
+        }
+
+        // console.log("GROUP", group, fixtureId);
+
+        if (fixture1.id === fixtureId || fixture2.id === fixtureId) {
+          let otherTeamId =
+            fixture1.id === fixtureId ? fixture2.winnerID : fixture1.winnerID;
+
+          // If the other fixture is not over yet, set the other team ID to null
+          if (!otherTeamId) {
+            otherTeamId = null;
+          }
+
+          if (existingFixture) {
+            console.log("EXISTING FIXTURE HERE");
+            // If such a fixture exists, update it with the ID of the winning team
+            await prisma.fixture.update({
+              where: { id: existingFixture.id },
+              data: {
+                teamParticipationId2: winnerId,
+                fixtureStartStatus: FIXTURE_STATUS_STARTED,
+              },
+            });
+
+            return existingFixture;
+          } else {
+            console.log("NO EXISTING FIXTURE");
+            // Otherwise, create a new fixture with the winner and the other team
+            const newFixture = await prisma.fixture.create({
+              data: {
+                tournamentID: fixture.tournamentID,
+                teamParticipationId1: winnerId,
+                teamParticipationId2: otherTeamId,
+                round: fixture.round + 1,
+                fixtureStartStatus: otherTeamId
+                  ? FIXTURE_STATUS_STARTED
+                  : FIXTURE_STATUS_NOT_STARTED,
+                startDate: new Date(), // Set this to the appropriate date
+                endDate: new Date(), // Set this to the appropriate date
+                location: fixture.location, // Set this to the appropriate location
+              },
+            });
+
+            return newFixture;
+          }
         }
       }
 
-      const fixture1 = group[0];
-      const fixture2 = group[1];
+      return true;
+    });
 
-      if (fixture1.isBye) {
-        continue;
-      }
-
-      // console.log("GROUP", group, fixtureId);
-
-      if (fixture1.id === fixtureId || fixture2.id === fixtureId) {
-        let otherTeamId =
-          fixture1.id === fixtureId ? fixture2.winnerID : fixture1.winnerID;
-
-        // If the other fixture is not over yet, set the other team ID to null
-        if (!otherTeamId) {
-          otherTeamId = null;
-        }
-
-        if (existingFixture) {
-          console.log("EXISTING FIXTURE HERE");
-          // If such a fixture exists, update it with the ID of the winning team
-          await prisma.fixture.update({
-            where: { id: existingFixture.id },
-            data: {
-              teamParticipationId2: winnerId,
-              fixtureStartStatus: FIXTURE_STATUS_STARTED,
-            },
-          });
-
-          return existingFixture;
-        } else {
-          console.log("NO EXISTING FIXTURE");
-          // Otherwise, create a new fixture with the winner and the other team
-          const newFixture = await prisma.fixture.create({
-            data: {
-              tournamentID: fixture.tournamentID,
-              teamParticipationId1: winnerId,
-              teamParticipationId2: otherTeamId,
-              round: fixture.round + 1,
-              fixtureStartStatus: otherTeamId
-                ? FIXTURE_STATUS_STARTED
-                : FIXTURE_STATUS_NOT_STARTED,
-              startDate: new Date(), // Set this to the appropriate date
-              endDate: new Date(), // Set this to the appropriate date
-              location: fixture.location, // Set this to the appropriate location
-            },
-          });
-
-          return newFixture;
-        }
-      }
-    }
-
-    return true;
+    return result;
   } catch (err: any) {
     throw err;
   }
@@ -1844,7 +1884,7 @@ export const logFixtureUpdate = async ({
 
       console.log(fixtureId, "FIXTURE ID");
 
-      pubsub.publish(`SCORE_UPDATE_${fixtureId}`, {
+      await pubsub.publish(`SCORE_UPDATE_${fixtureId}`, {
         scoreUpdates: {
           fixtureId: fixtureId,
           eventType: eventType,
