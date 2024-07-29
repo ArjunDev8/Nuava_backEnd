@@ -18,6 +18,8 @@ type Query {
   getAllFixturesForSchool(schoolId: Int!): [FixturesData]
 
   getAllLiveMatches: [FixturesData]
+
+  getFixtureResults: [FixtureResult]
 }
 
 type Mutation {

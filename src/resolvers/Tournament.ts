@@ -20,6 +20,7 @@ import {
   getBracket,
   getFixtureById,
   getMatchDetails,
+  getMatchDetailsForCompletedGamesOfTournament,
   logFixtureUpdate,
   startFixture,
   swapTeamsInFixture,
@@ -247,6 +248,37 @@ const TournamentResolvers: IResolvers = {
         return fixtures;
       } catch (err: any) {
         console.log("Error in getAllFixturesForSchool resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    getFixtureResults: async (_, __, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        let user = null;
+
+        if (role === UserEnum.COACH) {
+          user = await findCoachByID(id);
+        } else {
+          user = await findStudentByID(id);
+        }
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        console.log(user.schoolID, "SCHOOL ID");
+        const results = await getMatchDetailsForCompletedGamesOfTournament(
+          user.schoolID
+        );
+
+        return results;
+      } catch (err: any) {
+        console.log("Error in getFixtureResults resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

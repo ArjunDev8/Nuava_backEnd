@@ -2187,12 +2187,25 @@ export const getMatchDetails = async (fixtureId: number) => {
 };
 
 export const getMatchDetailsForCompletedGamesOfTournament = async (
-  tournamentId: number
+  schoolId: number
 ) => {
   try {
+    const tournaments = await prisma.participatingSchool.findMany({
+      where: {
+        schoolId: 1,
+      },
+      include: {
+        tournament: true,
+      },
+    });
+
+    console.log(tournaments, "Tournaments");
+
     const fixtures = await prisma.fixture.findMany({
       where: {
-        tournamentID: tournamentId,
+        tournamentID: {
+          in: tournaments.map((tournament) => tournament.tournament.id),
+        },
         status: FIXTURE_STATUS_COMPLETED,
       },
       include: {
@@ -2223,35 +2236,76 @@ export const getMatchDetailsForCompletedGamesOfTournament = async (
       },
     });
 
-    let fixturesWithResults = fixtures.map((fixture) => {
-      const matchResult = matchResults.find(
-        (result) => result.fixtureID === fixture.id
-      );
+    let fixturesWithResults = await Promise.all(
+      fixtures.map(async (fixture) => {
+        const matchResult = matchResults.find(
+          (result) => result.fixtureID === fixture.id
+        );
 
-      const team1Score =
-        fixture.teamParticipationId1 === matchResult?.homeTeamID
-          ? matchResult.homeTeamScore
-          : matchResult?.awayTeamScore;
-      const team2Score =
-        fixture.teamParticipationId2 === matchResult?.awayTeamID
-          ? matchResult.awayTeamScore
-          : matchResult?.homeTeamScore;
+        const tournamentName = tournaments.find(
+          (tournament) => tournament.tournament.id === fixture.tournamentID
+        )?.tournament.name;
 
-      return {
-        fixtureId: fixture.id,
-        team1: {
-          teamID: fixture.teamParticipationId1,
-          teamName: fixture.teamParticipation1?.team.name,
-          score: team1Score,
-        },
-        team2: {
-          teamID: fixture.teamParticipationId2,
-          teamName: fixture.teamParticipation2?.team.name,
-          score: team2Score,
-        },
-        finalScore: matchResult?.finalScore,
-      };
-    });
+        const team1Score =
+          fixture.teamParticipationId1 === matchResult?.homeTeamID
+            ? matchResult.homeTeamScore
+            : matchResult?.awayTeamScore;
+        const team2Score =
+          fixture.teamParticipationId2 === matchResult?.awayTeamID
+            ? matchResult.awayTeamScore
+            : matchResult?.homeTeamScore;
+
+        const matchEvents = await prisma.scoreLog.findMany({
+          where: {
+            fixtureID: fixture.id,
+            eventType: {
+              in: ["YellowCard", "RedCard", "Goal"],
+            },
+          },
+          include: {
+            student: true,
+          },
+        });
+
+        const team1Cards = matchEvents.filter(
+          (card) => card.teamID === fixture.teamParticipationId1
+        );
+
+        const team2Cards = matchEvents.filter(
+          (card) => card.teamID === fixture.teamParticipationId2
+        );
+
+        return {
+          fixtureId: fixture.id,
+          tournamentName: tournamentName,
+          team1: {
+            teamID: fixture.teamParticipationId1,
+            teamName: fixture.teamParticipation1?.team.name,
+            score: team1Score,
+            matchEvents: team1Cards.map((card) => {
+              return {
+                playerId: card.student.id,
+                playerName: card.student.name,
+                eventType: card.eventType,
+              };
+            }),
+          },
+          team2: {
+            teamID: fixture.teamParticipationId2,
+            teamName: fixture.teamParticipation2?.team.name,
+            score: team2Score,
+            matchEvents: team2Cards.map((card) => {
+              return {
+                playerId: card.student.id,
+                playerName: card.student.name,
+                eventType: card.eventType,
+              };
+            }),
+          },
+          finalScore: matchResult?.finalScore,
+        };
+      })
+    );
 
     console.log(fixturesWithResults, "fixturesWithResults");
 

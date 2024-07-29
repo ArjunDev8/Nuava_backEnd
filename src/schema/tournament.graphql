@@ -187,6 +187,18 @@ input EndFixtureInput {
   winnerID: Int!
 }
 
+input GetFixtureResultsInput {
+  tournamentId: Int!
+}
+
+type FixtureResult {
+  fixtureId: Int!
+  tournamentName: String
+  team1: MatchDetailsAndScoreForTeam
+  team2: MatchDetailsAndScoreForTeam
+  finalScore: String
+}
+
 input FixtureUpdatesInput {
   fixtureId: Int!
   eventType: EventType!
@@ -223,16 +235,16 @@ type ScoreUpdatesResponse {
 }
 
 type CardsGivenTo {
-  playerId: Int!
-  playerName: String!
-  eventType: String!
+  playerId: Int
+  playerName: String
+  eventType: String
 }
 
 type MatchDetailsAndScoreForTeam {
   teamID: Int!
-  teamName: String!
-  score: String!
-  matchEvents: [CardsGivenTo!]!
+  teamName: String
+  score: String
+  matchEvents: [CardsGivenTo]
 }
 
 type MatchDetailsAndScore {
