@@ -2,6 +2,7 @@ import { Coach, Fixture, School, Tournament } from "@prisma/client";
 import { ApolloError } from "apollo-server-errors";
 import { Job, Queue, Worker } from "bullmq";
 import {
+  FIXTURE_STATUS_COMPLETED,
   FIXTURE_STATUS_LIVE,
   FIXTURE_STATUS_NOT_STARTED,
   FIXTURE_STATUS_STARTED,
@@ -1573,12 +1574,20 @@ export const endFixture = async (fixtureId: number, winnerId: number) => {
         throw new ApolloError("Fixture not found");
       }
 
+      if (fixture.status !== FIXTURE_STATUS_LIVE) {
+        throw new ApolloError("You cant end a fixture that is not live");
+      }
+
       console.log(fixture, "FIXTURE");
 
       // Update the fixture with the winner
       await prisma.fixture.update({
         where: { id: fixtureId },
-        data: { winnerID: winnerId, isBye: false },
+        data: {
+          winnerID: winnerId,
+          isBye: false,
+          status: FIXTURE_STATUS_COMPLETED,
+        },
       });
 
       // Check if there are any remaining fixtures
@@ -1752,6 +1761,7 @@ export const endFixture = async (fixtureId: number, winnerId: number) => {
     throw err;
   }
 };
+
 // export const endFixture = async (fixtureId: number) => {
 //   try {
 //     const result = await prisma.$transaction(async (prisma) => {
@@ -2175,3 +2185,80 @@ export const getMatchDetails = async (fixtureId: number) => {
     throw err;
   }
 };
+
+export const getMatchDetailsForCompletedGamesOfTournament = async (
+  tournamentId: number
+) => {
+  try {
+    const fixtures = await prisma.fixture.findMany({
+      where: {
+        tournamentID: tournamentId,
+        status: FIXTURE_STATUS_COMPLETED,
+      },
+      include: {
+        teamParticipation1: {
+          include: {
+            team: true,
+          },
+        },
+        teamParticipation2: {
+          include: {
+            team: true,
+          },
+        },
+      },
+    });
+
+    console.log(fixtures);
+
+    if (!fixtures) {
+      throw new ApolloError("No fixtures found for the tournament");
+    }
+
+    const matchResults = await prisma.matchResult.findMany({
+      where: {
+        fixtureID: {
+          in: fixtures.map((fixture) => fixture.id),
+        },
+      },
+    });
+
+    let fixturesWithResults = fixtures.map((fixture) => {
+      const matchResult = matchResults.find(
+        (result) => result.fixtureID === fixture.id
+      );
+
+      const team1Score =
+        fixture.teamParticipationId1 === matchResult?.homeTeamID
+          ? matchResult.homeTeamScore
+          : matchResult?.awayTeamScore;
+      const team2Score =
+        fixture.teamParticipationId2 === matchResult?.awayTeamID
+          ? matchResult.awayTeamScore
+          : matchResult?.homeTeamScore;
+
+      return {
+        fixtureId: fixture.id,
+        team1: {
+          teamID: fixture.teamParticipationId1,
+          teamName: fixture.teamParticipation1?.team.name,
+          score: team1Score,
+        },
+        team2: {
+          teamID: fixture.teamParticipationId2,
+          teamName: fixture.teamParticipation2?.team.name,
+          score: team2Score,
+        },
+        finalScore: matchResult?.finalScore,
+      };
+    });
+
+    console.log(fixturesWithResults, "fixturesWithResults");
+
+    return fixturesWithResults;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+console.log(getMatchDetailsForCompletedGamesOfTournament(9));
