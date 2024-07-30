@@ -42,12 +42,14 @@ type RegisterStudentResponse {
   status: Boolean
   message: String
   token: String
+  isStudentModerator: Boolean
 }
 
 type LoginStudentResponse {
   status: Boolean
   message: String
   token: String
+  isStudentModerator: Boolean
 }
 
 type Student {

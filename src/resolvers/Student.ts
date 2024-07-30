@@ -118,6 +118,7 @@ const StudentResolvers: IResolvers = {
           status: true,
           message: "Student registered successfully",
           token,
+          isStudentModerator: registeredStudent.moderatorAccess,
         };
       } catch (err: any) {
         console.log("Error in registerStudent resolver: ", err.message);
@@ -134,6 +135,7 @@ const StudentResolvers: IResolvers = {
           status: true,
           message: "Student logged in successfully",
           token,
+          isStudentModerator: student.moderatorAccess,
         };
       } catch (err: any) {
         console.log("Error in loginStudent resolver: ", err.message);
