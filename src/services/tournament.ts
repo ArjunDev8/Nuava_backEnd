@@ -2047,7 +2047,7 @@ export const makeStudentModerator = async (studentId: number) => {
 
     const updatedStudent = await prisma.student.update({
       where: {
-        id: studentId,
+        id: student.id,
       },
       data: {
         moderatorAccess: true,
