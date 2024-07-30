@@ -27,6 +27,7 @@ import {
 } from "../services/tournament";
 import { pubsub } from "../services/queue";
 import { log } from "console";
+import { Coach, Student } from "@prisma/client";
 
 const TournamentResolvers: IResolvers = {
   Query: {
@@ -387,14 +388,24 @@ const TournamentResolvers: IResolvers = {
           process.env.JWT_SECRET_KEY as string
         );
 
-        if (role !== UserEnum.COACH) {
-          throw new Error("Unauthorized to swap teams");
+        console.log("id", id, role);
+
+        let user: Coach | Student | null = null;
+
+        if (role === UserEnum.COACH) {
+          user = (await findCoachByID(id)) as Coach;
+        } else {
+          user = (await findStudentByID(id)) as Student;
         }
 
-        const coach = await findCoachByID(id);
+        if (!user) {
+          throw new Error("User not found");
+        }
 
-        if (!coach) {
-          throw new Error("Coach not found");
+        if ("moderatorAccess" in user) {
+          if (role === UserEnum.STUDENT && !user.moderatorAccess) {
+            throw new Error("Unauthorized to end fixture");
+          }
         }
 
         const { fixtureId1, fixtureId2, team1Id, team2Id } = input;
@@ -657,14 +668,24 @@ const TournamentResolvers: IResolvers = {
         );
         const { fixtureId } = input;
 
-        if (role !== UserEnum.COACH) {
-          throw new Error("Unauthorized to start fixture");
+        console.log("id", id, role);
+
+        let user: Coach | Student | null = null;
+
+        if (role === UserEnum.COACH) {
+          user = (await findCoachByID(id)) as Coach;
+        } else {
+          user = (await findStudentByID(id)) as Student;
         }
 
-        const coach = await findCoachByID(id);
+        if (!user) {
+          throw new Error("User not found");
+        }
 
-        if (!coach) {
-          throw new Error("Coach not found");
+        if ("moderatorAccess" in user) {
+          if (role === UserEnum.STUDENT && !user.moderatorAccess) {
+            throw new Error("Unauthorized to end fixture");
+          }
         }
 
         await startFixture(fixtureId);
@@ -689,21 +710,22 @@ const TournamentResolvers: IResolvers = {
 
         console.log("id", id, role);
 
-        // if (role !== UserEnum.COACH) {
-        //   throw new Error("Unauthorized to end fixture");
-        // }
+        let user: Coach | Student | null = null;
 
-        const coach = await findCoachByID(id);
+        if (role === UserEnum.COACH) {
+          user = (await findCoachByID(id)) as Coach;
+        } else {
+          user = (await findStudentByID(id)) as Student;
+        }
 
-        console.log(coach, "THIS IS COACH");
-        const student = await findStudentByID(id);
+        if (!user) {
+          throw new Error("User not found");
+        }
 
-        // if (!coach || !student) {
-        //   throw new Error("User not found");
-        // }
-
-        if (role === UserEnum.STUDENT && student?.moderatorAccess === false) {
-          throw new Error("Unauthorized to end fixture");
+        if ("moderatorAccess" in user) {
+          if (role === UserEnum.STUDENT && !user.moderatorAccess) {
+            throw new Error("Unauthorized to end fixture");
+          }
         }
 
         await endFixture(fixtureId, winnerID);
@@ -725,14 +747,24 @@ const TournamentResolvers: IResolvers = {
           process.env.JWT_SECRET_KEY as string
         );
 
-        if (role !== UserEnum.COACH) {
-          throw new Error("Unauthorized to start fixture");
+        console.log("id", id, role);
+
+        let user: Coach | Student | null = null;
+
+        if (role === UserEnum.COACH) {
+          user = (await findCoachByID(id)) as Coach;
+        } else {
+          user = (await findStudentByID(id)) as Student;
         }
 
-        const coach = await findCoachByID(id);
+        if (!user) {
+          throw new Error("User not found");
+        }
 
-        if (!coach) {
-          throw new Error("Coach not found");
+        if ("moderatorAccess" in user) {
+          if (role === UserEnum.STUDENT && !user.moderatorAccess) {
+            throw new Error("Unauthorized to end fixture");
+          }
         }
 
         const {
