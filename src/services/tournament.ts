@@ -15,6 +15,7 @@ import { prisma } from "../db";
 import { areTournamentDaysValid } from "../helper/utils";
 import { redisConnection } from "./queue";
 import { typesOfSport } from "./team";
+import { JsonObject } from "@prisma/client/runtime/library";
 
 interface CreateTournamentInput {
   name: string;
@@ -2315,4 +2316,101 @@ export const getMatchDetailsForCompletedGamesOfTournament = async (
   }
 };
 
-console.log(getMatchDetailsForCompletedGamesOfTournament(9));
+// {
+//   eventId: Int!
+//   house1Name: String!
+//   house2Name: String!
+//   winnerHouse: String!
+//   house1Score: Int!
+//   house2Score: Int!
+// }
+
+export const endInterHouseEvent = async ({
+  eventId,
+  house1Name,
+  house2Name,
+  winnerHouse,
+  house1Score,
+  house2Score,
+}: {
+  eventId: number;
+  house1Name: string;
+  house2Name: string;
+  winnerHouse: string;
+  house1Score: number;
+  house2Score: number;
+}) => {
+  try {
+    const event = await prisma.events.findFirst({
+      where: {
+        id: eventId,
+        isInterHouseEvent: true,
+      },
+    });
+
+    if (!event) {
+      throw new ApolloError("Event not found");
+    }
+
+    if (event.typeOfEvent !== INTER_HOUSE_EVENT) {
+      throw new ApolloError("This is not an inter house event");
+    }
+
+    const updatedEvent = await prisma.events.update({
+      where: {
+        id: eventId,
+      },
+      data: {
+        details: {
+          house1Name: house1Name,
+          house2Name: house2Name,
+          winnerHouse: winnerHouse,
+          house1Score: house1Score,
+          house2Score: house2Score,
+          interHouseEventStatus: "COMPLETED",
+        },
+      },
+    });
+
+    return updatedEvent;
+  } catch (err: any) {
+    throw err;
+  }
+};
+
+export const getInterHouseEventsResults = async (schoolId: number) => {
+  try {
+    const events = await prisma.events.findMany({
+      where: {
+        schoolID: schoolId,
+        isInterHouseEvent: true,
+        typeOfEvent: INTER_HOUSE_EVENT,
+      },
+    });
+
+    if (!events) {
+      throw new ApolloError("No inter house events found");
+    }
+
+    const result = events
+      .filter(
+        (el) =>
+          (el?.details as JsonObject)?.interHouseEventStatus === "COMPLETED"
+      )
+      .map((event) => {
+        return {
+          id: event.id,
+          title: event.title,
+          startDate: event.start,
+          endDate: event.end,
+          isAllDay: event.allDay,
+          details: JSON.stringify(event.details),
+          typeOfEvent: event.typeOfEvent,
+        };
+      });
+
+    return result;
+  } catch (err: any) {
+    throw err;
+  }
+};

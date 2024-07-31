@@ -12,6 +12,7 @@ import {
   editFixture,
   editTournament,
   endFixture,
+  endInterHouseEvent,
   getAllEvents,
   getAllFixtureForSchool,
   getAllInterHouseEvents,
@@ -19,6 +20,7 @@ import {
   getAllTournaments,
   getBracket,
   getFixtureById,
+  getInterHouseEventsResults,
   getMatchDetails,
   getMatchDetailsForCompletedGamesOfTournament,
   logFixtureUpdate,
@@ -276,6 +278,35 @@ const TournamentResolvers: IResolvers = {
         const results = await getMatchDetailsForCompletedGamesOfTournament(
           user.schoolID
         );
+
+        return results;
+      } catch (err: any) {
+        console.log("Error in getFixtureResults resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    getInterHouseEventsResults: async (_, __, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+
+        let user = null;
+
+        if (role === UserEnum.COACH) {
+          user = await findCoachByID(id);
+        } else {
+          user = await findStudentByID(id);
+        }
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        console.log(user.schoolID, "SCHOOL ID");
+        const results = await getInterHouseEventsResults(user.schoolID);
 
         return results;
       } catch (err: any) {
@@ -559,6 +590,60 @@ const TournamentResolvers: IResolvers = {
         };
       } catch (err: any) {
         console.log("Error in createTournament resolver: ", err.message);
+        throw new ApolloError(err.message);
+      }
+    },
+
+    endInterHouseEvent: async (_, { input }, { auth }) => {
+      try {
+        const { id, role } = verifyJWTToken(
+          auth,
+          process.env.JWT_SECRET_KEY as string
+        );
+        const {
+          eventId,
+          winnerHouse,
+          house1Name,
+          house2Name,
+          house1Score,
+          house2Score,
+        } = input;
+
+        console.log("id", id, role);
+
+        let user: Coach | Student | null = null;
+
+        if (role === UserEnum.COACH) {
+          user = (await findCoachByID(id)) as Coach;
+        } else {
+          user = (await findStudentByID(id)) as Student;
+        }
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        if ("moderatorAccess" in user) {
+          if (role === UserEnum.STUDENT && !user.moderatorAccess) {
+            throw new Error("Unauthorized to end fixture");
+          }
+        }
+
+        await endInterHouseEvent({
+          eventId,
+          winnerHouse,
+          house1Name,
+          house2Name,
+          house1Score,
+          house2Score,
+        });
+
+        return {
+          status: true,
+          message: "Fixture ended successfully",
+        };
+      } catch (err: any) {
+        console.log("Error in endFixture resolver: ", err.message);
         throw new ApolloError(err.message);
       }
     },

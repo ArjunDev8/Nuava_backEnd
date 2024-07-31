@@ -20,6 +20,7 @@ type Query {
   getAllLiveMatches: [FixturesData]
 
   getFixtureResults: [FixtureResult]
+  getInterHouseEventsResults: [InterHouseEventResult]
 }
 
 type Mutation {
@@ -60,6 +61,7 @@ type Mutation {
   fixtureUpdates(input: FixtureUpdatesInput!): Result!
 
   makeStudentMorderator(input: MakeStudentModeratorInput!): Result!
+  endInterHouseEvent(input: EndInterHouseEventInput!): Result!
 }
 
 type Subscription {

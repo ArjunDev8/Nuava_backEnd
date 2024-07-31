@@ -227,6 +227,34 @@ input MakeStudentModeratorInput {
   studentId: Int!
 }
 
+input EndInterHouseEventInput {
+  eventId: Int!
+  house1Name: String!
+  house2Name: String!
+  winnerHouse: String!
+  house1Score: Int!
+  house2Score: Int!
+}
+
+# id: event.id,
+#         title: event.title,
+#         startDate: event.start,
+#         endDate: event.end,
+#         isAllDay: event.allDay,
+#         details: JSON.stringify(event.details),
+#         typeOfEvent: event.typeOfEvent,
+
+type InterHouseEventResult {
+  id: Int!
+  title: String!
+  startDate: String!
+  endDate: String!
+  isAllDay: Boolean!
+  description: String
+  details: String
+  typeOfEvent: String
+}
+
 type ScoreUpdatesResponse {
   fixtureId: Int!
   eventType: EventType!
