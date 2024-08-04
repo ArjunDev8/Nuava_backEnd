@@ -884,6 +884,7 @@ export const getBracket = async (tournamentId: number) => {
               },
             },
           },
+
           orderBy: {
             round: "asc",
           },
@@ -895,46 +896,77 @@ export const getBracket = async (tournamentId: number) => {
       throw new ApolloError("Tournament not found");
     }
 
-    const brackets = tournament.fixtures.map((fixture, index) => {
-      const team1 = fixture.teamParticipation1?.team;
-      const team2 = fixture.teamParticipation2?.team;
+    const brackets = await Promise.all<any>(
+      tournament.fixtures.map(async (fixture, index) => {
+        const team1 = fixture.teamParticipation1?.team;
+        const team2 = fixture.teamParticipation2?.team;
 
-      console.log(fixture.winnerID, fixture.teamParticipation1, "FIXTURE DATA");
-      const team1IsWinner = fixture.isBye
-        ? true
-        : fixture.winnerID === fixture.teamParticipationId1;
-      const team2IsWinner = fixture.isBye
-        ? false
-        : fixture.winnerID === fixture.teamParticipationId2;
+        console.log(
+          fixture.winnerID,
+          fixture.teamParticipation1,
+          "FIXTURE DATA"
+        );
+        const team1IsWinner = fixture.isBye
+          ? true
+          : fixture.winnerID === fixture.teamParticipationId1;
+        const team2IsWinner = fixture.isBye
+          ? false
+          : fixture.winnerID === fixture.teamParticipationId2;
 
-      return {
-        id: fixture.id,
-        name: `${team1 ? team1.name : "TBD"} vs ${team2 ? team2.name : "TBD"}`,
-        nextMatchId: tournament.fixtures[index + 1]
-          ? tournament.fixtures[index + 1].id
-          : null,
-        matchStatus: fixture.status,
-        tournamentRoundText: `Round ${fixture.round}`, // Using the round field to determine the round text
-        startTime: fixture.startDate.toISOString(),
-        state: fixture.isBye ? "DONE" : fixture.winnerID ? "DONE" : "PENDING", // If it's a bye or a winner is set, the state is "DONE". Otherwise, it's "PENDING".
-        participants: [
-          {
-            id: team1 ? fixture.teamParticipationId1?.toString() : null,
-            name: team1 ? team1.name : null,
-            resultText: team1IsWinner ? "WON" : "LOST", // If team 1 is the winner, set the result text to "WON".
-            isWinner: team1IsWinner,
-            status: fixture.isBye ? "WALK_OVER" : "NORMAL", // If it's a bye, set the status to "WALK_OVER". Otherwise, you need to determine how to set this.
+        const matchResults = await prisma.matchResult.findFirst({
+          where: {
+            fixtureID: fixture.id,
           },
-          {
-            id: team2 ? fixture.teamParticipationId2?.toString() : null,
-            name: team2 ? team2.name : null,
-            resultText: team2IsWinner ? "WON" : "LOST", // If team 2 is the winner, set the result text to "WON".
-            isWinner: team2IsWinner,
-            status: fixture.isBye ? "NO_PARTY" : "NORMAL", // If it's a bye, set the status to "NO_PARTY"
-          },
-        ],
-      };
-    });
+        });
+
+        console.log(
+          fixture.teamParticipationId1,
+          fixture.teamParticipationId2,
+          "THIS IS THE FIXTURE DATA"
+        );
+
+        const team1Score =
+          fixture.teamParticipationId1 === matchResults?.homeTeamID
+            ? matchResults?.homeTeamScore
+            : matchResults?.awayTeamScore;
+        const team2Score =
+          fixture.teamParticipationId2 === matchResults?.homeTeamID
+            ? matchResults?.homeTeamScore
+            : matchResults?.awayTeamScore;
+
+        return {
+          id: fixture.id,
+          name: `${team1 ? team1.name : "TBD"} vs ${
+            team2 ? team2.name : "TBD"
+          }`,
+          nextMatchId: tournament.fixtures[index + 1]
+            ? tournament.fixtures[index + 1].id
+            : null,
+          matchStatus: fixture.status,
+          tournamentRoundText: `Round ${fixture.round}`, // Using the round field to determine the round text
+          startTime: fixture.startDate.toISOString(),
+          state: fixture.isBye ? "DONE" : fixture.winnerID ? "DONE" : "PENDING", // If it's a bye or a winner is set, the state is "DONE". Otherwise, it's "PENDING".
+          participants: [
+            {
+              id: team1 ? fixture.teamParticipationId1?.toString() : null,
+              name: team1 ? team1.name : null,
+              resultText: team1IsWinner ? "WON" : "LOST", // If team 1 is the winner, set the result text to "WON".
+              isWinner: team1IsWinner,
+              status: fixture.isBye ? "WALK_OVER" : "NORMAL", // If it's a bye, set the status to "WALK_OVER". Otherwise, you need to determine how to set this.
+              score: team1Score,
+            },
+            {
+              id: team2 ? fixture.teamParticipationId2?.toString() : null,
+              name: team2 ? team2.name : null,
+              resultText: team2IsWinner ? "WON" : "LOST", // If team 2 is the winner, set the result text to "WON".
+              isWinner: team2IsWinner,
+              status: fixture.isBye ? "NO_PARTY" : "NORMAL", // If it's a bye, set the status to "NO_PARTY"
+              score: team2Score,
+            },
+          ],
+        };
+      })
+    );
 
     return brackets;
   } catch (err: any) {

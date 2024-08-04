@@ -122,6 +122,7 @@ type Participant {
   resultText: String # 'WON' or null
   isWinner: Boolean
   status: String # 'PLAYED' | 'NO_SHOW' | 'WALK_OVER' | 'NO_PARTY' | null
+  score: String
 }
 
 input CreateEventInput {
