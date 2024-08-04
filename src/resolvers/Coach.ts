@@ -142,7 +142,7 @@ const CoachResolvers: IResolvers = {
           throw new Error("Unauthorized to make student moderator");
         }
 
-        const { studentID } = input;
+        const { studentId } = input;
 
         const coach = await findCoachByID(id);
 
@@ -150,7 +150,7 @@ const CoachResolvers: IResolvers = {
           throw new Error("Coach not found");
         }
 
-        const student = await findStudentByID(studentID);
+        const student = await findStudentByID(studentId);
 
         if (!student) {
           throw new Error("Student not found");
@@ -160,7 +160,7 @@ const CoachResolvers: IResolvers = {
           throw new Error("Student does not belong to the same school");
         }
 
-        await makeStudentModerator(studentID);
+        await makeStudentModerator(studentId);
 
         return {
           status: true,
