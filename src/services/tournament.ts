@@ -1589,7 +1589,12 @@ const checkIfFixtureCanBeEnded = async (fixtureId: number) => {
   }
 };
 
-export const endFixture = async (fixtureId: number, winnerId: number) => {
+export const endFixture = async (
+  fixtureId: number,
+  winnerId: number,
+  startTimeForNextFixture: any,
+  endTimeForNextFixture: any
+) => {
   try {
     // Find the fixture
 
@@ -1709,8 +1714,8 @@ export const endFixture = async (fixtureId: number, winnerId: number) => {
                 winnerID: group[0].winnerID,
                 round: fixture.round + 1,
                 fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
-                startDate: new Date(), // Set this to the appropriate date
-                endDate: new Date(), // Set this to the appropriate date
+                startDate: startTimeForNextFixture, // Set this to the appropriate date
+                endDate: endTimeForNextFixture,
                 location: fixture.location, // Set this to the appropriate location
               },
             });

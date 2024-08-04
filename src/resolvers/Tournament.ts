@@ -791,7 +791,12 @@ const TournamentResolvers: IResolvers = {
           auth,
           process.env.JWT_SECRET_KEY as string
         );
-        const { fixtureId, winnerID } = input;
+        const {
+          fixtureId,
+          winnerID,
+          startTimeForNextFixture,
+          endTimeForNextFixture,
+        } = input;
 
         console.log("id", id, role);
 
@@ -813,7 +818,12 @@ const TournamentResolvers: IResolvers = {
           }
         }
 
-        await endFixture(fixtureId, winnerID);
+        await endFixture(
+          fixtureId,
+          winnerID,
+          startTimeForNextFixture,
+          endTimeForNextFixture
+        );
 
         return {
           status: true,
