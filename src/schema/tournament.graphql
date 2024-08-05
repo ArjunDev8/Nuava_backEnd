@@ -186,8 +186,8 @@ input StartFixtureInput {
 input EndFixtureInput {
   fixtureId: Int!
   winnerID: Int!
-  startTimeForNextFixture: String!
-  endTimeForNextFixture: String!
+  startTimeForNextFixture: String
+  endTimeForNextFixture: String
 }
 
 input GetFixtureResultsInput {

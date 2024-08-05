@@ -1714,8 +1714,8 @@ export const endFixture = async (
                 winnerID: group[0].winnerID,
                 round: fixture.round + 1,
                 fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
-                startDate: startTimeForNextFixture, // Set this to the appropriate date
-                endDate: endTimeForNextFixture,
+                startDate: startTimeForNextFixture || new Date(), // Set this to the appropriate date
+                endDate: endTimeForNextFixture || new Date(), // Set this to the appropriate date
                 location: fixture.location, // Set this to the appropriate location
               },
             });
