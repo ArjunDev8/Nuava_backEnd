@@ -59,4 +59,5 @@ type Student {
   schoolID: Int!
   grade: String!
   age: Int!
+  moderatorAccess: Boolean!
 }
