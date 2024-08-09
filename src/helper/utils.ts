@@ -3,14 +3,14 @@ import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
 // const moment = require("moment");
 
-// export const generateOTP = (size: number) => {
-//   var digits = "0123456789";
-//   let OTP = "";
-//   for (let i = 0; i < size; i++) {
-//     OTP += digits[Math.floor(Math.random() * 10)];
-//   }
-//   return OTP;
-// };
+export const generateOTP = (size: number) => {
+  var digits = "0123456789";
+  let OTP = "";
+  for (let i = 0; i < size; i++) {
+    OTP += digits[Math.floor(Math.random() * 10)];
+  }
+  return OTP;
+};
 
 // export const randomInteger = (min: number, max: number): number => {
 //   return Math.floor(Math.random() * (max - min + 1)) + min;

@@ -15,6 +15,7 @@ import {
 } from "../services/student";
 import { OTP_PURPOSE_REGISTER, STUDENT_ROLE } from "../constants";
 import { generateJWTToken, validatePassword } from "../helper/utils";
+import { validatePasskey } from "../services/coach";
 dotenv.config();
 
 const StudentResolvers: IResolvers = {
@@ -50,6 +51,18 @@ const StudentResolvers: IResolvers = {
 
         const lowerCaseEmail = email.toLowerCase();
         // TODO: VALIDATE EMAIL based on schools in the db
+        const schoolDomain = email.split("@")[1];
+
+        //TODO: Validate email based on schools in the db once we have valid data.
+        // const school = await prisma.school.findFirst({
+        //   where: {
+        //     domain: schoolDomain,
+        //   },
+        // });
+
+        // if (!school) {
+        //   throw new Error("School not found");
+        // }
         await sendStudentOtp(lowerCaseEmail, purpose);
 
         return {

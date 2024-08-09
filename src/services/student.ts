@@ -9,8 +9,9 @@ import {
   STUDENT_ROLE,
 } from "../constants";
 import { prisma } from "../db";
-import { hashedPassword, isEmail } from "../helper/utils";
+import { generateOTP, hashedPassword, isEmail } from "../helper/utils";
 import bcrypt from "bcrypt";
+import { emailQueue } from "./email";
 
 export const signJWTToken = (
   email: string,
@@ -73,7 +74,7 @@ export const createOTP = async (input: string, purpose: string) => {
   const otp = await prisma.otp.create({
     data: {
       userLogin: input,
-      otp: "123456",
+      otp: generateOTP(6),
       purpose,
       status: OTP_SENT_STATUS,
     },
@@ -128,6 +129,11 @@ export const sendStudentOtp = async (email: string, purpose: string) => {
       } else {
         await invalidateOTPs(email);
         const otp = await createOTP(email, purpose);
+        emailQueue.add("sendOtpEmail", {
+          userName: email,
+          userEmail: email,
+          otp: otp.otp,
+        });
         console.log("OTP sent to email");
       }
     } else if (purpose === OTP_PURPOSE_FORGOT_PASSWORD) {

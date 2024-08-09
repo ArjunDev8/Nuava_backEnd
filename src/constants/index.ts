@@ -38,3 +38,8 @@ export const FIXTURE_STATUS_COMPLETED = "completed";
 export const FIXTURE_STATUS_PENDING = "pending";
 
 export const MATCH_RESULT_CONFIRMATION_STATUS = "PENDING";
+
+export const COMPANY_NAME = "Nuavasports";
+export const MSG91_EMAIL_TEMPLATE_ID = "global_otp";
+export const MSG91_DOMAIN = "mail.nuavasports.com";
+export const MSG91_SENDER_EMAIL = "support@mail.nuavasports.com";

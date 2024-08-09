@@ -11,28 +11,23 @@ import { prisma } from "../db";
 import { createOTP, invalidateOTPs, verifyJWTToken } from "./student";
 import { hashedPassword, isEmail } from "../helper/utils";
 import { typesOfSport } from "./team";
+import { emailQueue } from "./email";
 
 export const sendCoachOtp = async (email: string, purpose: string) => {
   try {
-    if (purpose === OTP_PURPOSE_REGISTER) {
-      const coach = await findCoach(email);
-      if (coach) {
-        throw new Error("Email already exists");
-      } else {
-        await invalidateOTPs(email);
-        const otp = await createOTP(email, purpose);
-        console.log("OTP sent to email");
-      }
-    } else if (purpose === OTP_PURPOSE_FORGOT_PASSWORD) {
-      const coach = await findCoach(email);
-      if (!coach) {
-        throw new Error("Coach not found");
-      } else {
-        await invalidateOTPs(email);
-        const otp = await createOTP(email, purpose);
+    const coach = await findCoach(email);
+    if (coach) {
+      throw new Error("Email already exists");
+    } else {
+      await invalidateOTPs(email);
+      const otp = await createOTP(email, purpose);
 
-        console.log("OTP sent to email");
-      }
+      emailQueue.add("sendOtpEmail", {
+        userName: email,
+        userEmail: email,
+        otp: otp.otp,
+      });
+      console.log("OTP sent to email");
     }
 
     return true;

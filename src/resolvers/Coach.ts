@@ -118,8 +118,9 @@ const CoachResolvers: IResolvers = {
         const schoolDomain = email.split("@")[1];
         const lowerCaseEmail = email.toLowerCase();
 
-        await validatePasskey(passkey, schoolDomain);
-        await sendCoachOtp(lowerCaseEmail, purpose);
+        //TODO: Validate email based on schools in the db once we have valid data.
+        // await validatePasskey(passkey, schoolDomain);
+        await sendCoachOtp(lowerCaseEmail, OTP_PURPOSE_REGISTER);
 
         return {
           status: true,
@@ -286,19 +287,19 @@ const CoachResolvers: IResolvers = {
 
         const template = getEmailTemplate("resetpassword.html");
 
-        emailQueue.add(
-          "sendEmail",
-          {
-            subject: "Password Reset",
-            body: template,
-            toEmails: [{ email }],
-            templateParams: {
-              name: userRecord.name,
-              link: `https://${process.env.FRONTEND_SITENAME}/#/setpassword?id=${jwtToken}`,
-            },
-          },
-          { removeOnComplete: true }
-        );
+        // emailQueue.add(
+        //   "sendEmail",
+        //   {
+        //     subject: "Password Reset",
+        //     body: template,
+        //     toEmails: [{ email }],
+        //     templateParams: {
+        //       name: userRecord.name,
+        //       link: `https://${process.env.FRONTEND_SITENAME}/#/setpassword?id=${jwtToken}`,
+        //     },
+        //   },
+        //   { removeOnComplete: true }
+        // );
         return {
           status: true,
           message: "Email with reset instructions are sent.",
