@@ -162,6 +162,9 @@ export const findCoachByID = async (id: number): Promise<Coach | null> => {
       where: {
         id,
       },
+      include: {
+        school: true,
+      },
     });
 
     return coach;

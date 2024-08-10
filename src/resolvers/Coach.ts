@@ -41,13 +41,27 @@ const CoachResolvers: IResolvers = {
           throw new Error("Unauthorized to get coach details");
         }
 
-        const coach = await findCoachByID(id);
+        const coach = (await findCoachByID(id)) as any;
 
         if (!coach) {
           throw new Error("Coach not found");
         }
 
-        return coach;
+        // id: Int!
+        // name: String!
+        // email: String!
+        // phone: String!
+        // schoolID: String!
+        // schoolName: String!
+
+        return {
+          id: coach.id,
+          name: coach.name,
+          email: coach.email,
+          phone: coach.phone,
+          schoolID: coach.schoolID,
+          schoolName: coach.school.name,
+        };
       } catch (err: any) {
         console.log("Error in coach resolver: ", err.message);
         throw new ApolloError(err.message);
