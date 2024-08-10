@@ -12,7 +12,6 @@ input RegisterStudentInput {
   email: String!
   password: String!
   name: String!
-  schoolID: Int!
   grade: String!
   age: Int!
 }

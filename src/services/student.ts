@@ -159,7 +159,6 @@ export const createStudent = async (input: {
   password: string;
   grade: string;
   age: number;
-  schoolID: number;
   name: string;
 }): Promise<Student> => {
   try {
