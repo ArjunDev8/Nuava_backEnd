@@ -335,6 +335,8 @@ const TournamentResolvers: IResolvers = {
           throw new Error("Coach not found");
         }
 
+        console.log("input", input, coach);
+
         const tournament = await createTournament(input, coach);
 
         return {

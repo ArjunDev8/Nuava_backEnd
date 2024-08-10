@@ -1,4 +1,4 @@
-import { Coach, Fixture, School, Tournament } from "@prisma/client";
+import { Coach, Fixture, School, Student, Tournament } from "@prisma/client";
 import { ApolloError } from "apollo-server-errors";
 import { Job, Queue, Worker } from "bullmq";
 import {
