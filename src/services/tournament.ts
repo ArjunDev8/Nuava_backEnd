@@ -1150,23 +1150,27 @@ export const editFixture = async ({
     }
 
     // just change the time for the start date of the fixture
-    let updatedStartTimeStamp;
-    let updatedEndTimeStamp;
+    let updatedStartTimeStamp: Date | undefined;
+    let updatedEndTimeStamp: Date | undefined;
 
     if (fixtureStartTime) {
-      updatedStartTimeStamp = new Date(fixture.startDate).setHours(
+      const newStartTime = new Date(fixture.startDate);
+      newStartTime.setHours(
         new Date(fixtureStartTime).getHours(),
         new Date(fixtureStartTime).getMinutes(),
         new Date(fixtureStartTime).getSeconds()
       );
+      updatedStartTimeStamp = newStartTime;
     }
 
     if (fixtureEndTime) {
-      updatedEndTimeStamp = new Date(fixture.endDate).setHours(
+      const newEndTime = new Date(fixture.endDate);
+      newEndTime.setHours(
         new Date(fixtureEndTime).getHours(),
         new Date(fixtureEndTime).getMinutes(),
         new Date(fixtureEndTime).getSeconds()
       );
+      updatedEndTimeStamp = newEndTime;
     }
 
     const updatedFixture = await prisma.fixture.update({
@@ -1174,8 +1178,8 @@ export const editFixture = async ({
         id: fixtureId,
       },
       data: {
-        startDate: updatedStartTimeStamp,
-        endDate: fixtureEndTime,
+        startDate: updatedStartTimeStamp || fixture.startDate,
+        endDate: updatedEndTimeStamp || fixture.endDate,
         location: fixtureLocation,
       },
     });
