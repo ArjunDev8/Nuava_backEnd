@@ -232,6 +232,7 @@ const CoachResolvers: IResolvers = {
       try {
         const email = input.email.toLowerCase();
         const coach = await checkCoachExists(email);
+        console.log("Coach", coach);
         const token = await checkPassword(coach, input.password);
         return {
           status: true,

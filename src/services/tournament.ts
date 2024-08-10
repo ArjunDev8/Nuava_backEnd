@@ -1714,8 +1714,8 @@ export const endFixture = async (
                 winnerID: group[0].winnerID,
                 round: fixture.round + 1,
                 fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
-                startDate: startTimeForNextFixture || new Date(), // Set this to the appropriate date
-                endDate: endTimeForNextFixture || new Date(), // Set this to the appropriate date
+                startDate: startTimeForNextFixture, // Set this to the appropriate date
+                endDate: endTimeForNextFixture, // Set this to the appropriate date
                 location: fixture.location, // Set this to the appropriate location
               },
             });
@@ -1728,8 +1728,8 @@ export const endFixture = async (
                 winnerID: null,
                 round: fixture.round + 2,
                 fixtureStartStatus: FIXTURE_STATUS_NOT_STARTED,
-                startDate: new Date(), // Set this to the appropriate date
-                endDate: new Date(), // Set this to the appropriate date
+                startDate: startTimeForNextFixture, // Set this to the appropriate date
+                endDate: endTimeForNextFixture, // Set this to the appropriate date
                 location: fixture.location, // Set this to the appropriate location
               },
             });
@@ -1780,8 +1780,8 @@ export const endFixture = async (
                 fixtureStartStatus: otherTeamId
                   ? FIXTURE_STATUS_STARTED
                   : FIXTURE_STATUS_NOT_STARTED,
-                startDate: new Date(), // Set this to the appropriate date
-                endDate: new Date(), // Set this to the appropriate date
+                startDate: startTimeForNextFixture, // Set this to the appropriate date
+                endDate: endTimeForNextFixture, // Set this to the appropriate date
                 location: fixture.location, // Set this to the appropriate location
               },
             });
