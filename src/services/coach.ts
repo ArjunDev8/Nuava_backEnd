@@ -85,7 +85,10 @@ export const createCoach = async (input: {
   email: string;
   phone: string;
   password: string;
-}): Promise<Coach> => {
+}): Promise<{
+  coachDetails: Coach;
+  schoolName: string;
+}> => {
   try {
     const { email, password, name, phone } = input;
     const lcEmail = email.toLowerCase();
@@ -118,7 +121,19 @@ export const createCoach = async (input: {
       },
     });
 
-    return coach;
+    const schoolName = await prisma.school.findFirst({
+      where: {
+        id: coach.schoolID,
+      },
+      select: {
+        name: true,
+      },
+    });
+
+    return {
+      coachDetails: coach,
+      schoolName: schoolName?.name || "",
+    };
   } catch (e: any) {
     throw new Error(e.message);
   }
@@ -128,6 +143,9 @@ export const checkCoachExists = async (email: string): Promise<Coach> => {
   const coachRecord = await prisma.coach.findFirst({
     where: {
       email,
+    },
+    include: {
+      school: true,
     },
   });
 

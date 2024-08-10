@@ -213,11 +213,11 @@ const CoachResolvers: IResolvers = {
         throw new Error("Coach already exists");
       }
 
-      const registeredCoach = await createCoach(input);
+      const { coachDetails, schoolName } = await createCoach(input);
 
       let token = generateJWTToken({
-        email: registeredCoach.email,
-        id: registeredCoach.id,
+        email: coachDetails.email,
+        id: coachDetails.id,
         role: COACH_ROLE,
       });
 
@@ -225,19 +225,21 @@ const CoachResolvers: IResolvers = {
         status: true,
         message: "Coach registered successfully",
         token,
+        schoolName,
       };
     },
 
     loginCoach: async (_, { input }) => {
       try {
         const email = input.email.toLowerCase();
-        const coach = await checkCoachExists(email);
+        const coach = (await checkCoachExists(email)) as any;
         console.log("Coach", coach);
         const token = await checkPassword(coach, input.password);
         return {
           status: true,
           message: "Coach logged in successfull",
           token,
+          schoolName: coach.school.name,
         };
       } catch (err: any) {
         console.log("Error in loginCoach resolver: ", err.message);

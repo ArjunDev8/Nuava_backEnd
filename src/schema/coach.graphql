@@ -27,6 +27,7 @@ type RegisterCoachResponse {
   status: Boolean
   message: String
   token: String
+  schoolName: String
 }
 
 type Result {
@@ -38,6 +39,7 @@ type LoginCoachResponse {
   status: Boolean
   message: String
   token: String
+  schoolName: String
 }
 
 input ForgotPasswordRequest {
