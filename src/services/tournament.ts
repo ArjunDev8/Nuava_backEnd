@@ -528,7 +528,7 @@ export const createFixtures = async ({
   let currentDay = 0;
   let currentTime = new Date(tournamentDays[currentDay].startTime);
 
-  console.log("CURRENT TIME", participatingTeams);
+  console.log("CURRENT TIME", currentTime, tournamentDays);
 
   for (let i = 0; i < participatingTeams.length; i += 2) {
     if (i + 1 < participatingTeams.length) {
@@ -549,7 +549,6 @@ export const createFixtures = async ({
           fixtureStartStatus: FIXTURE_STATUS_STARTED,
           tournamentID: tournament.id,
           startDate: currentTime,
-
           endDate: endTime,
           location: "TBD",
         },
@@ -1150,12 +1149,32 @@ export const editFixture = async ({
       throw new ApolloError("Fixture not found");
     }
 
+    // just change the time for the start date of the fixture
+    let updatedStartTimeStamp;
+    let updatedEndTimeStamp;
+
+    if (fixtureStartTime) {
+      updatedStartTimeStamp = new Date(fixture.startDate).setHours(
+        new Date(fixtureStartTime).getHours(),
+        new Date(fixtureStartTime).getMinutes(),
+        new Date(fixtureStartTime).getSeconds()
+      );
+    }
+
+    if (fixtureEndTime) {
+      updatedEndTimeStamp = new Date(fixture.endDate).setHours(
+        new Date(fixtureEndTime).getHours(),
+        new Date(fixtureEndTime).getMinutes(),
+        new Date(fixtureEndTime).getSeconds()
+      );
+    }
+
     const updatedFixture = await prisma.fixture.update({
       where: {
         id: fixtureId,
       },
       data: {
-        startDate: fixtureStartTime,
+        startDate: updatedStartTimeStamp,
         endDate: fixtureEndTime,
         location: fixtureLocation,
       },
