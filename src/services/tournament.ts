@@ -885,7 +885,7 @@ export const getBracket = async (tournamentId: number) => {
           },
 
           orderBy: {
-            round: "asc",
+            id: "asc",
           },
         },
       },
